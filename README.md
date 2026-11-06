@@ -12,7 +12,7 @@ Presenter screen + participant phones, no accounts needed. Runs on your own Clou
 
 ## Use it
 - Presenter: open `ADDRESS/?host` and enter the passcode.
-- Participants: scan the QR code on the first slide or the Home page (it points to `ADDRESS`). They type a first name, tap their team, and wait for your questions.
+- Participants: scan the QR code on the first slide or the Home page (it points to `ADDRESS`). They type a first name, tap their house (17 houses, up to 5 people each; full houses are greyed out), and wait for your questions.
 - Before the real session: Home > "Clear all answers" (tap twice) to wipe test data. Phones that joined during testing are asked to join again.
 - Test once with your own phone before the day.
 
@@ -30,7 +30,7 @@ The Workers Free plan allows 100,000 requests per day (Worker and Durable Object
 Polling every 2 seconds from 40 phones for 2 hours would be about 144,000 requests, so the app does not poll.
 Each phone opens one WebSocket, and the server pushes the question when it changes. Hibernation keeps the
 Durable Object asleep between pushes, and keep-alive pings are answered without waking it.
-A typical 40-person session uses roughly 2,000 to 4,000 requests: joins, answers, reconnects, and the presenter's answer fetches.
+A typical 40-person session uses roughly 3,000 to 5,000 requests: joins (the join screen refreshes house counts every 4 seconds), answers, reconnects, and the presenter's answer fetches.
 If a phone cannot open a WebSocket, it falls back to checking every 5 seconds, and pauses while the screen is off.
 
 ## Notes

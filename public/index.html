@@ -159,8 +159,12 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:14px 0 4px}
 .phone .brand{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
 .phone h1{font-size:26px}
 .phone .q{font-size:20px;font-weight:700;margin:4px 0 12px}
-.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.teams button{min-height:48px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700}
+.teams{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.teams button{min-height:52px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px;line-height:1.2}
+.teams button small{font-weight:600;font-size:12px;opacity:.75}
+.teams button span{overflow-wrap:anywhere}
+.teams button.full{opacity:.45;cursor:not-allowed;text-decoration:line-through}
+.hgrp{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
 .teams button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .lab{font-size:14px;font-weight:600;margin:12px 0 6px;display:block}
 .sent{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:10px 12px;font-weight:600}
@@ -405,7 +409,8 @@ function setLive(next){live=next;renderPanel();liveBusy++;
   chainL=chainL.then(function(){return api('/api/live',{key:KEY,body:next})}).then(function(){netOk(true)}).catch(function(){netOk(false);flash('Could not update the phones. Check the connection and try again.')}).then(function(){liveBusy--});return chainL}
 /* Answers are kept on the phone first. If sending fails, we retry when the connection comes back. */
 function saveMine(){var d=JSON.parse(JSON.stringify(mine));unsent=true;try{localStorage.setItem('iti_mine',JSON.stringify(d))}catch(e){}
-  chainM=chainM.then(function(){return api('/api/me',{body:{cid:uid,doc:d}})}).then(function(){if(JSON.stringify(mine)===JSON.stringify(d))unsent=false;netOk(true);return true}).catch(function(e){if(String(e.message)==='400'){unsent=false;flash('That answer could not be saved.');return false}netOk(false);return false});
+  chainM=chainM.then(function(){return api('/api/me',{body:{cid:uid,doc:d}})}).then(function(){savedTeam=d.team;if(JSON.stringify(mine)===JSON.stringify(d))unsent=false;netOk(true);return true}).catch(function(e){if(String(e.message)==='409'){unsent=false;var h=teamName(d.team);mine=Object.assign({},mine,{editProfile:true,team:savedTeam||0});draft={name:d.name,team:0};try{localStorage.removeItem('iti_mine')}catch(x){}loadTeams();flash('House '+h+' is full (5 of 5). Please pick another house.');return false}
+    if(String(e.message)==='400'){unsent=false;flash('That answer could not be saved.');return false}netOk(false);return false});
   return chainM.then(function(ok){if(mode==='phone')renderPhone();return ok})}
 function retryUnsent(){if(unsent&&mine&&mode==='phone'&&epochKnown)saveMine()}
 /* After "Clear all answers" the server's epoch goes up: forget this phone's old copy and join again. */
@@ -423,12 +428,12 @@ function summarize(p){var A=answersFor(p.id),res={n:A.length};
   if(p.type==='scale'&&A.length){res.avg=Math.round(A.reduce(function(s,a){return s+Number(a.v)},0)/A.length*10)/10}
   return res}
 function resultsHTML(p){var A=answersFor(p.id);if(!A.length)return '<p class="muted">No answers yet.</p>';
-  var who=function(a){return esc(showNames&&a.name?a.name+' · ':'')+'Team '+esc(a.team||'?')};
+  var who=function(a){return esc(showNames&&a.name?a.name+' · ':'')+'House '+esc(teamName(a.team))};
   if(p.type==='text')return '<div class="wall">'+A.map(function(a){return '<div class="note">'+esc(a.v)+'<small>'+who(a)+'</small></div>'}).join('')+'</div>';
   if(p.type==='choice'){var s=summarize(p),max=Math.max.apply(null,s.counts.concat([1]));return p.options.map(function(o,i){return '<div class="bar'+(p.correct===i?' right':'')+'"><span>'+esc(o)+(p.correct===i?' ✓':'')+'</span><b>'+s.counts[i]+'</b><div class="tr"><i style="width:'+(s.counts[i]/max*100)+'%"></i></div></div>'}).join('')}
   if(p.type==='number'){var r='<div class="row">'+A.map(function(a){return '<span class="chip'+(p.correct!=null&&Number(a.v)===p.correct?' ok':'')+'">'+esc(a.v)+'</span>'}).join('')+'</div>';if(p.correct!=null)r+='<p>Correct: <b>'+p.correct+'</b>. '+summarize(p).right+' of '+A.length+' got it.</p>';return r}
   if(p.type==='scale'){var c=[0,0,0,0,0];A.forEach(function(a){c[a.v-1]++});var mx=Math.max.apply(null,c.concat([1]));return '<p>Average <b>'+summarize(p).avg+'</b> from '+A.length+'</p>'+c.map(function(n,i){return '<div class="bar"><span>'+(i+1)+'</span><b>'+n+'</b><div class="tr"><i style="width:'+(n/mx*100)+'%"></i></div></div>'}).join('')}
-  if(p.type==='risk'){A=A.filter(function(a){return a.v&&typeof a.v==='object'});var rows=A.slice().sort(function(a,b){return b.v.occ*b.v.imp-a.v.occ*a.v.imp});return '<div class="tw"><table class="t"><thead><tr><th>Risk</th><th class="num">Occ</th><th class="num">Imp</th><th>Rating</th><th>Team</th></tr></thead><tbody>'+rows.map(function(a){return '<tr><td>'+esc(a.v.text)+'</td><td class="num">'+esc(a.v.occ)+'</td><td class="num">'+esc(a.v.imp)+'</td><td>'+badge(Number(a.v.occ)*Number(a.v.imp)||0)+'</td><td>'+who(a)+'</td></tr>'}).join('')+'</tbody></table></div>'}
+  if(p.type==='risk'){A=A.filter(function(a){return a.v&&typeof a.v==='object'});var rows=A.slice().sort(function(a,b){return b.v.occ*b.v.imp-a.v.occ*a.v.imp});return '<div class="tw"><table class="t"><thead><tr><th>Risk</th><th class="num">Occ</th><th class="num">Imp</th><th>Rating</th><th>House</th></tr></thead><tbody>'+rows.map(function(a){return '<tr><td>'+esc(a.v.text)+'</td><td class="num">'+esc(a.v.occ)+'</td><td class="num">'+esc(a.v.imp)+'</td><td>'+badge(Number(a.v.occ)*Number(a.v.imp)||0)+'</td><td>'+who(a)+'</td></tr>'}).join('')+'</tbody></table></div>'}
   return ''}
 
 /* ---------- presenter ---------- */
@@ -470,7 +475,13 @@ setInterval(function(){var any=false;SEGS.forEach(function(s){if(timers[s.id].ru
 function push(p,seg){var o={id:p.base+'@'+Date.now().toString(36),base:p.base,type:p.type,q:p.q,seg:seg||''};if(p.options)o.options=p.options;if(p.correct!=null)o.correct=p.correct;setLive({prompt:o,open:true,result:null,ts:Date.now()})}
 
 /* ---------- phone ---------- */
-var TEAMS=[1,2,3,4,5,6,7,8];
+/* Houses: 9 Great Houses, then 8 other houses. The id is what is stored (1 to 17). */
+var TEAMS=['Stark','Lannister','Targaryen','Baratheon','Greyjoy','Tyrell','Martell','Arryn','Tully','Bolton','Frey','Tarly','Mormont','Reed','Umber','Karstark','Clegane'].map(function(n,i){return {id:i+1,name:n,g:i<9?1:2}});
+function teamName(id){var t=TEAMS[Number(id)-1];return t?t.name:'?'}
+var teamInfo={cap:5,counts:{}},teamTimer=null,savedTeam=0; /* savedTeam: the house the server has confirmed for this phone */
+function loadTeams(){return api('/api/teams').then(function(r){if(r&&r.counts){var ch=JSON.stringify(r)!==JSON.stringify(teamInfo);teamInfo=r;if(ch&&mode==='phone'&&(!mine||mine.editProfile))renderPhone()}}).catch(function(){})}
+function watchTeams(){if(teamTimer)return;loadTeams();teamTimer=setInterval(function(){if(!document.hidden)loadTeams()},4000)}
+function stopTeams(){clearInterval(teamTimer);teamTimer=null}
 function renderPhone(){
   if(mode!=='phone')return;
   var fx=focusSnap();
@@ -482,8 +493,14 @@ function renderPhoneInner(){
   if(!uid){h+='<div class="card"><b>Sign in to join.</b><p class="muted">Please reload this page.</p></div></div>';app.innerHTML=h;return}
   if(!mine||mine.editProfile){
     var nm=(draft.name!=null?draft.name:(mine&&mine.name)||''),tm=draft.team!=null?draft.team:(mine&&mine.team)||0;
-    h+='<div class="card"><b>Join the session</b><label class="lab">Your name</label><input type="text" id="jname" maxlength="40" value="'+esc(nm)+'" placeholder="First name"><label class="lab">Your team</label><div class="teams">'+TEAMS.map(function(t){return '<button data-act="team" data-t="'+t+'" class="'+(tm===t?'on':'')+'">'+t+'</button>'}).join('')+'</div><div class="row"><button class="btn pri" data-act="joingo">Join</button></div></div></div>';app.innerHTML=h;return}
-  h+='<div class="muted">'+esc(mine.name)+' · Team '+mine.team+' <button class="btn sm ghost" data-act="editprof">Change</button></div>';
+    var cap=teamInfo.cap,counts=teamInfo.counts||{};
+    function tb(t){var n=counts[t.id]||0,own=savedTeam===t.id?1:0,full=n-own>=cap&&tm!==t.id;
+      return '<button data-act="team" data-t="'+t.id+'" class="'+(tm===t.id?'on':'')+(full?' full':'')+'"'+(full?' disabled aria-disabled="true"':'')+'><span>'+esc(t.name)+'</span><small>'+(full?'Full':n+'/'+cap)+'</small></button>'}
+    h+='<div class="card"><b>Join the session</b><label class="lab">Your name</label><input type="text" id="jname" maxlength="40" value="'+esc(nm)+'" placeholder="First name"><label class="lab">Your house <span class="muted" style="font-weight:400">(up to '+cap+' per house)</span></label>'
+      +'<div class="hgrp">Great Houses</div><div class="teams">'+TEAMS.filter(function(t){return t.g===1}).map(tb).join('')+'</div>'
+      +'<div class="hgrp">Other Houses</div><div class="teams">'+TEAMS.filter(function(t){return t.g===2}).map(tb).join('')+'</div>'
+      +'<div class="row"><button class="btn pri" data-act="joingo">Join</button></div></div></div>';app.innerHTML=h;watchTeams();return}
+  stopTeams();h+='<div class="muted">'+esc(mine.name)+' · House '+esc(teamName(mine.team))+' <button class="btn sm ghost" data-act="editprof">Change</button></div>';
   var lp=live&&live.prompt;
   if(!lp){h+='<div class="card"><b>You are in.</b><p class="muted">Wait for the next question. It will appear here by itself.</p></div></div>';app.innerHTML=h;return}
   var open=live.open!==false,mineA=mine.answers&&mine.answers[lp.id];
@@ -552,8 +569,8 @@ function act(a,d){
   else if(a==='clear'){if(!clearArm){clearArm=true;renderPresenter();return}clearArm=false;clearAll()}
   /* phone */
   else if(a==='team'){draft.team=+d.t;var n=$('#jname');if(n)draft.name=n.value;renderPhone()}
-  else if(a==='joingo'){var nm=($('#jname').value||'').trim();if(!nm)return flash('Enter your name.');if(!draft.team&&!(mine&&mine.team))return flash('Pick your team.');
-    mine={name:nm,team:draft.team||mine.team,answers:(mine&&mine.answers)||{},joinedAt:(mine&&mine.joinedAt)||Date.now()};draft={name:nm,team:mine.team};renderPhone();saveMine()}
+  else if(a==='joingo'){var nm=($('#jname').value||'').trim();if(!nm)return flash('Enter your name.');if(!draft.team)return flash('Pick your house.');
+    mine={name:nm,team:draft.team,answers:(mine&&mine.answers)||{},joinedAt:(mine&&mine.joinedAt)||Date.now()};draft={name:nm,team:mine.team};renderPhone();saveMine()}
   else if(a==='editprof'){mine=Object.assign({},mine,{editProfile:true});draft={name:mine.name,team:mine.team};renderPhone()}
   else if(a==='pick'){draft.v=+d.n;keepText();saveDraft();renderPhone()}
   else if(a==='occ'){draft.occ=+d.n;keepText();saveDraft();renderPhone()}
@@ -624,7 +641,7 @@ async function boot(){
   if(mode==='presenter'){renderPresenter();startNet();return}
   /* Phone: use the copy saved on this phone right away, then check with the server. */
   var local=null;try{local=JSON.parse(localStorage.getItem('iti_mine')||'null')}catch(e){}
-  try{var m=await api('/api/me?cid='+encodeURIComponent(uid));if(m&&m.name)mine=m;
+  try{var m=await api('/api/me?cid='+encodeURIComponent(uid));if(m&&m.name){mine=m;savedTeam=m.team}
     /* Server copy wins unless this phone has answers that never reached it. */
     if(local&&local.name&&(!m||Object.keys(local.answers||{}).some(function(k){return !(m.answers||{})[k]}))){mine=local;unsent=true}
     else if(!m)mine=null}

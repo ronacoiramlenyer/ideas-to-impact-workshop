@@ -11,6 +11,8 @@ const J = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: 
 const MAX = 8000;
 const CID = /^[a-z0-9]{4,40}$/i;
 const PID = /^[a-z0-9]{1,20}@[a-z0-9]{1,20}$/i; // question id: base@time36
+const TEAM_COUNT = 17; // houses; names live in public/index.html (TEAMS)
+const TEAM_CAP = 5;    // most members per house
 
 export class Session {
   constructor(state) {
@@ -21,6 +23,12 @@ export class Session {
   }
 
   async rev() { return (await this.s.get("rev")) ?? 0; }
+  // Members per house, optionally leaving one participant out.
+  async counts(exceptCid) {
+    const c = {};
+    for (const [k, v] of await this.s.list({ prefix: "p:" })) if (k !== "p:" + exceptCid && v && v.team) c[v.team] = (c[v.team] || 0) + 1;
+    return c;
+  }
   // Goes up by one on every "Clear all answers", so phones know to forget what they kept locally.
   async epoch() { return (await this.s.get("epoch")) ?? 0; }
 
@@ -52,8 +60,15 @@ export class Session {
     if (u.pathname === "/live" && req.method === "GET") return J({ live: (await this.s.get("live")) ?? null, epoch: await this.epoch() });
     if (u.pathname === "/live") { await this.s.put("live", await req.json()); await this.broadcast({ rev: false }); return J({ ok: true }); }
     if (u.pathname === "/me" && req.method === "GET") return J((await this.s.get("p:" + u.searchParams.get("cid"))) ?? null);
+    if (u.pathname === "/teams") return J({ cap: TEAM_CAP, counts: await this.counts() });
     if (u.pathname === "/me") {
       const b = await req.json();
+      // A house holds at most TEAM_CAP people. Only checked when someone joins or changes house.
+      const before = await this.s.get("p:" + b.cid);
+      if (!before || before.team !== b.doc.team) {
+        const counts = await this.counts(b.cid);
+        if ((counts[b.doc.team] || 0) >= TEAM_CAP) return J({ error: "team full", team: b.doc.team }, 409);
+      }
       await this.s.put({ ["p:" + b.cid]: b.doc, rev: (await this.rev()) + 1 });
       await this.broadcast({ live: false });
       return J({ ok: true });
@@ -95,7 +110,7 @@ function cleanValue(v) {
 function cleanDoc(d) {
   if (!d || typeof d !== "object") return null;
   const team = Number(d.team);
-  if (typeof d.name !== "string" || !d.name.trim() || !Number.isInteger(team) || team < 1 || team > 8) return null;
+  if (typeof d.name !== "string" || !d.name.trim() || !Number.isInteger(team) || team < 1 || team > TEAM_COUNT) return null;
   const answers = d.answers && typeof d.answers === "object" && !Array.isArray(d.answers) ? d.answers : {};
   const keys = Object.keys(answers);
   if (keys.length > 60) return null;
@@ -141,6 +156,7 @@ export default {
         if (!cleanLive(t)) return J({ error: "bad request" }, 400);
         return call("/live", { method: "POST", body: t });
       }
+      if (path === "/teams" && req.method === "GET") return call("/teams");
       if (path === "/me" && req.method === "GET") {
         const cid = url.searchParams.get("cid") || "";
         if (!CID.test(cid)) return J(null);

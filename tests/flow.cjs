@@ -52,7 +52,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phone.fill('#jname', 'Ana');
     await phone.click('[data-act=team][data-t="3"]');
     await phone.click('[data-act=joingo]');
-    await phone.getByText('You are in.').waitFor(); ok('phone joined as Ana, team 3');
+    await phone.getByText('You are in.').waitFor(); await phone.getByText('House Targaryen').waitFor(); ok('phone joined as Ana, House Targaryen');
     await host.locator('#jn', { hasText: '1 joined' }).waitFor({ timeout: 8000 }); ok('host sees 1 joined');
 
     // First slide has QR
@@ -134,6 +134,20 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     assert.ok(await phone.getByText('Sent ✓').isVisible()); ok('phone shows "Reconnecting" and keeps the screen during outage');
     await phoneCtx.setOffline(false);
     await phone.locator('#net', { hasText: 'Reconnecting' }).waitFor({ state: 'hidden', timeout: 10000 }); ok('phone recovers after outage');
+
+    // House cap: 5 per house, the 6th is refused; the phone shows the house as full
+    for (let i = 0; i < 5; i++) {
+      r = await fetch(BASE + '/api/me', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ cid: 'capx' + i, doc: { name: 'P' + i, team: 2, answers: {} } }) });
+      assert.equal(r.status, 200);
+    }
+    r = await fetch(BASE + '/api/me', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ cid: 'capx9', doc: { name: 'Six', team: 2, answers: {} } }) });
+    assert.equal(r.status, 409);
+    r = await fetch(BASE + '/api/teams'); const tm = await r.json();
+    assert.equal(tm.counts['2'], 5); ok('house cap: 6th member of Lannister refused (409)');
+    await phone.click('[data-act=editprof]');
+    await phone.locator('[data-act=team][data-t="2"][disabled]', { hasText: 'Full' }).waitFor({ timeout: 8000 });
+    await phone.locator('[data-act=team][data-t="3"]', { hasText: 'Targaryen' }).waitFor(); ok('phone shows houses by name, full house disabled');
+    await phone.click('[data-act=joingo]');
 
     // Clear all (two taps)
     await host.click('[data-act=home]');
