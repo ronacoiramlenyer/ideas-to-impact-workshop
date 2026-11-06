@@ -1,6 +1,8 @@
 # Question bank: facilitator answer key
 
-52 questions are built into the presenter screen. On any slide, open **Question bank and ask now**, pick the segment, and tap **Push**. A pushed question leaves the list (tap **Show pushed** to repeat one; **Clear all answers** resets the list). Answers are not shown on the projector; they appear on screen and on phones only when you tap **Show result on phones**. Habit checks follow the cues in the talk outline.
+54 questions are built into the presenter screen. On any slide, open **Question bank and ask now**, pick the segment, and tap **Push**. A pushed question leaves the list (tap **Show pushed** to repeat one; **Clear all answers** resets the list). Answers are not shown on the projector; they appear on screen and on phones only when you tap **Show result on phones**. Habit checks follow the cues in the talk outline.
+
+Risk Rating = Occurrence + Impact (2 to 10), per the office Risk Legend: Low 2–3, Medium 4–6, High 7–8, Extreme 9–10. Treatment: 6 and below Accept; above 6 Reduce, Transfer / Share, or Avoid (High needs Committee approval; Extreme, the Committee decides).
 
 Keep this page for yourself.
 
@@ -41,15 +43,17 @@ Keep this page for yourself.
 
 ## Part 3 · Manage Risks Proactively (40 min)
 
-- *Number* — Occurrence 3 × Impact 4. What is the Risk Rating? **Answer: 12**
-- *Choice* — A Risk Rating of 12 is in which band? [Low / Medium / High / Extreme] **Answer: High**
-- *Choice* — A Risk Rating of 2 (Low). What is the treatment? [Accept / Reduce / Transfer / Share / Avoid] **Answer: Accept**
-- *Choice* — A Risk Rating of 20 (Extreme). What is the treatment? [Accept / Reduce / Avoid; the Committee decides / Ignore it] **Answer: Avoid; the Committee decides**
+- *Number* — Occurrence 3 + Impact 4. What is the Risk Rating? **Answer: 7**
+- *Choice* — A Risk Rating of 5 (Medium). What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid] **Answer: Accept**
+- *Choice* — A Risk Rating of 8 (High). What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid] **Answer: Reduce, Transfer / Share, or Avoid**
+- *Choice* — A Risk Rating of 7 is in which level? [Low / Medium / High / Extreme] **Answer: High**
+- *Choice* — A Risk Rating of 3 (Low). What is the treatment? [Accept / Reduce / Transfer / Share / Avoid] **Answer: Accept**
+- *Choice* — A Risk Rating of 9 (Extreme). What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid; the Committee decides / Ignore it] **Answer: Reduce, Transfer / Share, or Avoid; the Committee decides**
 - *Choice* — Additional Controls lower which number? [Occurrence / Impact / The budget / The number of participants] **Answer: Occurrence**
 - *Choice* — Mitigation lowers which number? [Occurrence / Impact / The budget / The number of participants] **Answer: Impact**
 - *Choice* — A participant needs a clinic visit but is not hospitalized. What is the Impact? [1 Negligible / 2 Minor / 3 Moderate / 4 Significant] **Answer: 2 Minor**
 - *Choice* — The activity gets regional media attention and major complaints. What is the Impact? [2 Minor / 3 Moderate / 4 Significant / 5 Severe] **Answer: 3 Moderate**
-- *Choice* — When can you Accept a risk? [Only when the Risk Rating is already Low / When it is Medium / When the budget is tight / Whenever the team agrees] **Answer: Only when the Risk Rating is already Low**
+- *Choice* — When can you Accept a risk? [When the Risk Rating is 6 or below / When the Risk Rating is 12 / When the budget is tight / Whenever the team agrees] **Answer: When the Risk Rating is 6 or below**
 - *Text* — Name one Additional Control for rain on the day of an outdoor activity.
 - *Risk* — Describe one risk for your activity, then rate Occurrence and Impact as it stands today.
 - *Choice* — Habit check: You are fixing the problem before it happens instead of reacting. Which habit? [the 7 habits] **Answer: 1 Be Proactive**

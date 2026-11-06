@@ -106,19 +106,19 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phone.click('[data-act=imp][data-n="2"]');
     await phone.click('[data-act=send]');
     await phone.getByText('Sent ✓').waitFor();
-    await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 }); ok('risk answer (4 × 2) reached host');
+    await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 }); ok('risk answer (4 + 2 = 6, Medium) reached host');
 
-    // Question bank: one tap pushes a ready question (Part 3: Occurrence 3 × Impact 4)
+    // Question bank: one tap pushes a ready question (Part 3: Occurrence 3 + Impact 4 = 7)
     await openPanel(); await host.click('#askd summary');
-    await host.locator('.bq', { hasText: 'Occurrence 3 × Impact 4' }).locator('[data-act=bankgo]').click();
-    await phone.getByText('Occurrence 3 × Impact 4. What is the Risk Rating?').waitFor({ timeout: 8000 });
-    await phone.fill('#din', '12');
+    await host.locator('.bq', { hasText: 'Occurrence 3 + Impact 4' }).locator('[data-act=bankgo]').click();
+    await phone.getByText('Occurrence 3 + Impact 4. What is the Risk Rating?').waitFor({ timeout: 8000 });
+    await phone.fill('#din', '7');
     await phone.click('[data-act=send]');
     await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 });
     ok('question bank push answered on phone');
-    await host.locator('.bq', { hasText: 'Occurrence 3 × Impact 4' }).waitFor({ state: 'detached' });
+    await host.locator('.bq', { hasText: 'Occurrence 3 + Impact 4' }).waitFor({ state: 'detached' });
     await host.click('[data-act=bankused]');
-    await host.locator('.bq.done', { hasText: 'Occurrence 3 × Impact 4' }).waitFor(); ok('pushed question leaves the bank list (Show pushed brings it back)');
+    await host.locator('.bq.done', { hasText: 'Occurrence 3 + Impact 4' }).waitFor(); ok('pushed question leaves the bank list (Show pushed brings it back)');
     await host.selectOption('#bseg', 'close');
     await host.locator('.bq', { hasText: 'One thing you learned today.' }).waitFor(); ok('question bank switches segment');
 
