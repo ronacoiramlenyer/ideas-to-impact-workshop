@@ -114,7 +114,10 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phone.fill('#din', '12');
     await phone.click('[data-act=send]');
     await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 });
-    await host.locator('.bq.on', { hasText: 'Occurrence 3 × Impact 4' }).waitFor(); ok('question bank push answered on phone');
+    ok('question bank push answered on phone');
+    await host.locator('.bq', { hasText: 'Occurrence 3 × Impact 4' }).waitFor({ state: 'detached' });
+    await host.click('[data-act=bankused]');
+    await host.locator('.bq.done', { hasText: 'Occurrence 3 × Impact 4' }).waitFor(); ok('pushed question leaves the bank list (Show pushed brings it back)');
     await host.selectOption('#bseg', 'close');
     await host.locator('.bq', { hasText: 'One thing you learned today.' }).waitFor(); ok('question bank switches segment');
 

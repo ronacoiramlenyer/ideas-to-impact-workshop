@@ -150,7 +150,7 @@ table.itm td,table.itm th{vertical-align:middle}
 .sent.wait{background:var(--gold-soft);color:var(--gold)}
 .bank{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .bq{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:15px;line-height:1.35}
-.bq.on{border-color:var(--ok);background:var(--ok-soft)}
+.bq.done{opacity:.7;border-style:dashed}
 .bq .bo{font-size:13px;margin-top:2px}
 hr.sep{border:0;border-top:1px solid var(--line);margin:14px 0 4px}
 #askd summary{cursor:pointer}
@@ -377,11 +377,17 @@ var BANK=[
 (function(){var o={};SEGS.forEach(function(x,i){o[x.id]=i});BANK=BANK.map(function(b,i){return [b,i]}).sort(function(a,b){return o[a[0].seg]-o[b[0].seg]||a[1]-b[1]}).map(function(x){return x[0]})})();
 BANK.forEach(function(b,i){b.base='bank'+i});
 var TYPE_LABEL={text:'Text',choice:'Choice',number:'Number',scale:'1–5',risk:'Risk'};
-var bankSeg=null;
-function bankHTML(){var cur=bankSeg||(view.t==='slide'?SEGS[view.s].id:'open'),lp=live&&live.prompt;
+var bankSeg=null,showUsed=false,used={};
+try{used=JSON.parse(localStorage.getItem('iti_used')||'{}')||{}}catch(e){used={}}
+function saveUsed(){try{localStorage.setItem('iti_used',JSON.stringify(used))}catch(e){}}
+/* A bank question counts as pushed if this presenter pushed it, or if any phone has answered it. */
+function isUsed(b){if(used[b.base])return true;return resp.some(function(r){var a=r.data&&r.data.answers;return a&&Object.keys(a).some(function(k){return k.split('@')[0]===b.base})})}
+function bankHTML(){var cur=bankSeg||(view.t==='slide'?SEGS[view.s].id:'open');
+  var all=BANK.filter(function(b){return b.seg===cur}),ready=all.filter(function(b){return !isUsed(b)}),done=all.filter(isUsed);
+  function row(b,isDone){return '<div class="bq'+(isDone?' done':'')+'"><div><span class="chip">'+TYPE_LABEL[b.type]+'</span> '+esc(b.q)+(b.options?'<div class="muted bo">'+b.options.map(esc).join(' · ')+'</div>':'')+'</div><button class="btn sm '+(isDone?'':'pri')+'" data-act="bankgo" data-b="'+b.base.slice(4)+'">'+(isDone?'Again':'Push')+'</button></div>'}
   return '<label class="lab" for="bseg">Ready questions</label><select id="bseg">'+SEGS.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.n)+'</option>'}).join('')+'</select>'
-  +'<div class="bank">'+BANK.filter(function(b){return b.seg===cur}).map(function(b){var on=lp&&lp.base===b.base;
-    return '<div class="bq'+(on?' on':'')+'"><div><span class="chip">'+TYPE_LABEL[b.type]+'</span> '+esc(b.q)+(b.options?'<div class="muted bo">'+b.options.map(esc).join(' · ')+'</div>':'')+'</div><button class="btn sm '+(on?'':'pri')+'" data-act="bankgo" data-b="'+b.base.slice(4)+'">'+(on?'Again':'Push')+'</button></div>'}).join('')+'</div>'}
+  +'<div class="bank">'+(ready.length?ready.map(function(b){return row(b,false)}).join(''):'<p class="muted" style="margin:4px 0">All ready questions for this segment have been pushed.</p>')
+  +(done.length?'<button class="btn sm ghost" data-act="bankused">'+(showUsed?'Hide pushed':'Show pushed ('+done.length+')')+'</button>'+(showUsed?done.map(function(b){return row(b,true)}).join(''):''):'')+'</div>'}
 function drawBank(){var el=$('#bankw');if(el)el.innerHTML=bankHTML()}
 
 /* ---------- state ---------- */
@@ -538,7 +544,8 @@ function act(a,d){
   else if(a==='askgo'){var q=($('#aq').value||'').trim(),ty=$('#at').value;if(!q)return flash('Type the question first.');var p={base:'adhoc',type:ty,q:q,seg:'Quick question'};
     if(ty==='choice'){p.options=($('#ao').value||'').split(',').map(function(x){return x.trim()}).filter(Boolean);if(p.options.length<2)return flash('Give at least two choices.')}
     push(p,'Quick question');$('#aq').value='';flash('Sent to phones.')}
-  else if(a==='bankgo'){var bq=BANK[+d.b];if(bq){push(bq,SEGS.filter(function(x){return x.id===bq.seg})[0].n);flash('Sent to phones.')}}
+  else if(a==='bankgo'){var bq=BANK[+d.b];if(bq){used[bq.base]=1;saveUsed();push(bq,SEGS.filter(function(x){return x.id===bq.seg})[0].n);flash('Sent to phones.')}}
+  else if(a==='bankused'){showUsed=!showUsed;drawBank()}
   else if(a==='ask'){go(0,0);setTimeout(function(){var d=$('#askd');if(d)d.open=true},0)}
   else if(a==='phone'){mode='phone';renderPhone()}
   else if(a==='topres'){mode='presenter';renderPresenter()}
@@ -555,7 +562,7 @@ function act(a,d){
   else if(a==='edit'){editing=true;var pr=live&&live.prompt,old=pr&&mine.answers&&mine.answers[pr.id];draft={pid:pr.id,name:draft.name,team:draft.team};if(old){if(pr.type==='choice'||pr.type==='scale')draft.v=old.v;else if(pr.type==='risk'){draft.occ=old.v.occ;draft.imp=old.v.imp;draft.text=old.v.text}else draft.text=String(old.v)}renderPhone();var t=$('#din');if(t&&old&&pr.type==='number')t.value=old.v}
 }
 function keepText(){var t=$('#din');if(t)draft.text=t.value}
-async function clearAll(){try{await api('/api/clear',{key:KEY,body:{}});resp=[];await setLive({prompt:null,open:false,result:null,ts:Date.now()});flash('All answers cleared.');renderPresenter()}catch(e){flash('Could not clear. Check the connection.')}}
+async function clearAll(){try{await api('/api/clear',{key:KEY,body:{}});resp=[];used={};saveUsed();showUsed=false;await setLive({prompt:null,open:false,result:null,ts:Date.now()});flash('All answers cleared.');renderPresenter()}catch(e){flash('Could not clear. Check the connection.')}}
 
 /* ---------- boot ---------- */
 function unlockForm(msg){app.innerHTML='<div class="phone"><div><div class="brand">Facilitator</div><h1>From Ideas to Impact</h1></div><div class="card"><label class="lab">Presenter passcode</label><input type="password" id="pk" style="width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:42px" autocomplete="current-password">'+(msg?'<p style="color:var(--bad)">'+esc(msg)+'</p>':'')+'<div class="row"><button class="btn pri" data-act="unlock">Open presenter view</button></div></div></div>'}

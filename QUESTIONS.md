@@ -1,6 +1,6 @@
 # Question bank: facilitator answer key
 
-51 questions are built into the presenter screen. On any slide, open **Question bank and ask now**, pick the segment, and tap **Push**. Answers are not shown on the projector; they appear on screen and on phones only when you tap **Show result on phones**. Habit checks follow the cues in the talk outline.
+51 questions are built into the presenter screen. On any slide, open **Question bank and ask now**, pick the segment, and tap **Push**. A pushed question leaves the list (tap **Show pushed** to repeat one; **Clear all answers** resets the list). Answers are not shown on the projector; they appear on screen and on phones only when you tap **Show result on phones**. Habit checks follow the cues in the talk outline.
 
 Keep this page for yourself.
 
