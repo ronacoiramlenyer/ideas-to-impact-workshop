@@ -144,6 +144,12 @@ table.itm td,table.itm th{vertical-align:middle}
 
 #net{position:fixed;left:0;right:0;top:0;z-index:10;background:var(--gold-soft);color:var(--gold);border-bottom:1px solid var(--gold);padding:8px 16px;font-weight:600;text-align:center;font-size:15px}
 .sent.wait{background:var(--gold-soft);color:var(--gold)}
+.bank{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bq{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:15px;line-height:1.35}
+.bq.on{border-color:var(--ok);background:var(--ok-soft)}
+.bq .bo{font-size:13px;margin-top:2px}
+hr.sep{border:0;border-top:1px solid var(--line);margin:14px 0 4px}
+#askd summary{cursor:pointer}
 /* phone */
 .phone{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 .phone .brand{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
@@ -304,6 +310,52 @@ var SEGS=[
 ]}];
 SEGS.forEach(function(s,si){s.slides.forEach(function(sl,i){sl.id=sl.id||(s.id+'-'+i);if(sl.prompt)sl.prompt.seg=s.n})});
 
+
+/* ---------- question bank: ready to push with one tap ----------
+   type: text | choice | number | scale | risk. correct = index (choice) or value (number). */
+var BANK=[
+ {seg:'open',type:'text',q:'In one word: how do you feel when you plan an SK activity?'},
+ {seg:'open',type:'choice',q:'Which part of an activity is hardest for your SK?',options:['Planning the activity','Making the budget','Thinking about the risks']},
+ {seg:'open',type:'scale',q:'How confident are you in writing an activity proposal? 1 = not yet, 5 = very confident'},
+ {seg:'open',type:'choice',q:'In the 7 Habits, which habit is in the middle?',options:['Be Proactive','Think Win-Win','Synergize','Sharpen the Saw'],correct:1},
+ {seg:'p1',type:'choice',q:'"Hold a basketball league" is…',options:['An activity, not yet an objective','A strong objective','A KPI','A risk'],correct:0},
+ {seg:'p1',type:'choice',q:'In the objective formula, what comes right after "so that"?',options:['The activity','The result','The budget','The date'],correct:1},
+ {seg:'p1',type:'choice',q:'Which part makes an objective measurable?',options:['The KPI and target','A catchy title','The venue','The number of SK officials'],correct:0},
+ {seg:'p1',type:'text',q:'Write a KPI you could use for a barangay clean-up drive.'},
+ {seg:'p1',type:'choice',q:'When do you fill in the Actual column of the evaluation?',options:['Before the activity','During the planning meeting','After the activity','Only if something goes wrong'],correct:2},
+ {seg:'p2',type:'number',q:'Meals: 40 participants × ₱200. What is the total for meals?',correct:8000},
+ {seg:'p2',type:'number',q:'Total budget ₱18,000 for 40 participants. What is the cost per participant?',correct:450},
+ {seg:'p2',type:'number',q:'Budget ₱12,000. Cost per participant ₱400. How many participants can we serve?',correct:30},
+ {seg:'p2',type:'choice',q:'The total budget is…',options:['A result of the itemized list','The starting point','Whatever is left in the fund','Decided by the venue'],correct:0},
+ {seg:'p2',type:'choice',q:'The budget is cut. What do you cut LAST?',options:['Safety items like first aid and headcounts','Snacks and extras','Giveaways','Decorations'],correct:0},
+ {seg:'p2',type:'choice',q:'Your risk action costs money. Where does that cost go?',options:['Its own line in the budget','Nowhere, it is free','Taken from the meals','Paid by participants'],correct:0},
+ {seg:'p3',type:'number',q:'Occurrence 3 × Impact 4. What is the Risk Rating?',correct:12},
+ {seg:'p3',type:'choice',q:'A Risk Rating of 12 is in which band?',options:['Low','Medium','High','Extreme'],correct:2},
+ {seg:'p3',type:'choice',q:'A Risk Rating of 2 (Low). What is the treatment?',options:['Accept','Reduce','Transfer / Share','Avoid'],correct:0},
+ {seg:'p3',type:'choice',q:'A Risk Rating of 20 (Extreme). What is the treatment?',options:['Accept','Reduce','Avoid; the Committee decides','Ignore it'],correct:2},
+ {seg:'p3',type:'choice',q:'Additional Controls lower which number?',options:['Occurrence','Impact','The budget','The number of participants'],correct:0},
+ {seg:'p3',type:'choice',q:'Mitigation lowers which number?',options:['Occurrence','Impact','The budget','The number of participants'],correct:1},
+ {seg:'p3',type:'choice',q:'A participant needs a clinic visit but is not hospitalized. What is the Impact?',options:['1 Negligible','2 Minor','3 Moderate','4 Significant'],correct:1},
+ {seg:'p3',type:'choice',q:'The activity gets regional media attention and major complaints. What is the Impact?',options:['2 Minor','3 Moderate','4 Significant','5 Severe'],correct:1},
+ {seg:'p3',type:'choice',q:'When can you Accept a risk?',options:['Only when the Risk Rating is already Low','When it is Medium','When the budget is tight','Whenever the team agrees'],correct:0},
+ {seg:'p3',type:'text',q:'Name one Additional Control for rain on the day of an outdoor activity.'},
+ {seg:'p3',type:'risk',q:'Describe one risk for your activity, then rate Occurrence and Impact as it stands today.'},
+ {seg:'pres',type:'text',q:'What is one strong point of the plan you just reviewed?'},
+ {seg:'pres',type:'scale',q:'Rate the plan you just heard. 1 = needs work, 5 = ready to implement.'},
+ {seg:'close',type:'text',q:'One thing you learned today.'},
+ {seg:'close',type:'choice',q:'Which tool will your SK use first?',options:['The objective formula','The itemized budget','The Risk Register']},
+ {seg:'close',type:'scale',q:'How useful was today\'s session? 1 = not useful, 5 = very useful'},
+ {seg:'close',type:'text',q:'What should we improve next time?'}
+];
+BANK.forEach(function(b,i){b.base='bank'+i});
+var TYPE_LABEL={text:'Text',choice:'Choice',number:'Number',scale:'1–5',risk:'Risk'};
+var bankSeg=null;
+function bankHTML(){var cur=bankSeg||(view.t==='slide'?SEGS[view.s].id:'open'),lp=live&&live.prompt;
+  return '<label class="lab" for="bseg">Ready questions</label><select id="bseg">'+SEGS.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.n)+'</option>'}).join('')+'</select>'
+  +'<div class="bank">'+BANK.filter(function(b){return b.seg===cur}).map(function(b){var on=lp&&lp.base===b.base;
+    return '<div class="bq'+(on?' on':'')+'"><div><span class="chip">'+TYPE_LABEL[b.type]+'</span> '+esc(b.q)+(b.options?'<div class="muted bo">'+b.options.map(esc).join(' · ')+'</div>':'')+'</div><button class="btn sm '+(on?'':'pri')+'" data-act="bankgo" data-b="'+b.base.slice(4)+'">'+(on?'Again':'Push')+'</button></div>'}).join('')+'</div>'}
+function drawBank(){var el=$('#bankw');if(el)el.innerHTML=bankHTML()}
+
 /* ---------- state ---------- */
 var app=$('#app'),uid=null,isOwner=false,KEY='';
 var mode='boot',view={t:'home'},live=null,resp=[],mine=null,draft={},editing=false,showNames=false,unsent=false,cleanup=[],clearArm=false;
@@ -363,14 +415,14 @@ function renderPresenter(){
   var seg=SEGS[view.s],sl=seg.slides[view.i],T=timers[seg.id];
   app.className='deck';
   app.innerHTML='<div class="top"><button class="btn sm" data-act="home">← Home</button><span class="chip">'+esc(seg.n)+'</span><span class="sp"></span><span class="tmr" id="tmr"></span><button class="btn sm" data-act="tgo" id="tgo"></button><button class="btn sm ghost" data-act="trs">Reset</button></div>'
-  +'<div class="stage withp"><section class="slide" id="slide"><div class="kick">'+esc(sl.k||'')+'</div><h2>'+esc(sl.t)+'</h2><div id="sbody">'+sl.body()+'</div></section><aside id="panel"><div id="plive"></div><details id="askd" class="card"><summary><b>Ask a question now</b></summary><div id="askf"></div></details></aside></div>'
+  +'<div class="stage withp"><section class="slide" id="slide"><div class="kick">'+esc(sl.k||'')+'</div><h2>'+esc(sl.t)+'</h2><div id="sbody">'+sl.body()+'</div></section><aside id="panel"><div id="plive"></div><details id="askd" class="card"'+(sl.prompt?'':' open')+'><summary><b>Question bank and ask now</b></summary><div id="bankw"></div><hr class="sep"><div id="askf"></div></details></aside></div>'
   +'<div class="bottom"><button class="btn" data-act="prev">← Back</button><div class="dots">'+seg.slides.map(function(x,i){return '<i class="'+(i===view.i?'on':'')+'"></i>'}).join('')+'</div><button class="btn pri" data-act="next">'+(view.i===seg.slides.length-1?(view.s===SEGS.length-1?'Home':'Next segment →'):'Next →')+'</button></div>';
-  $('#askf').innerHTML=askForm();
+  bankSeg=null;$('#askf').innerHTML=askForm();drawBank();
   if(sl.init)sl.init($('#sbody'),cleanup);
   updTimer();renderPanel()}
-function askForm(){return '<label class="lab">Question</label><input type="text" id="aq" placeholder="Type a question for the phones"><label class="lab">Answer type</label><select id="at"><option value="text">Short text</option><option value="choice">Choice</option><option value="number">Number</option><option value="scale">Rating 1 to 5</option></select><div id="aoWrap" style="display:none"><label class="lab">Choices, separated by commas</label><input type="text" id="ao" placeholder="Yes, No, Not sure"></div><div class="row"><button class="btn pri sm" data-act="askgo">Push to phones</button></div>'}
+function askForm(){return '<label class="lab">Or type your own question</label><input type="text" id="aq" placeholder="Type a question for the phones"><label class="lab">Answer type</label><select id="at"><option value="text">Short text</option><option value="choice">Choice</option><option value="number">Number</option><option value="scale">Rating 1 to 5</option><option value="risk">Risk (description + Occurrence × Impact)</option></select><div id="aoWrap" style="display:none"><label class="lab">Choices, separated by commas</label><input type="text" id="ao" placeholder="Yes, No, Not sure"></div><div class="row"><button class="btn pri sm" data-act="askgo">Push to phones</button></div>'}
 function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined'}
-function renderPanel(){var el=$('#plive');if(!el)return;var sl=curSlide(),sp=sl&&sl.prompt,lp=live&&live.prompt;
+function renderPanel(){var el=$('#plive');if(!el)return;drawBank();var sl=curSlide(),sp=sl&&sl.prompt,lp=live&&live.prompt;
   var h='<div class="card"><div class="ph"><b>Phones</b><span class="chip">'+resp.length+' joined</span>'+statusChip()+'</div>';
   if(sp&&!(lp&&lp.base===sp.base)){h+='<div class="pq">'+esc(sp.q)+'</div><div class="row"><button class="btn pri" data-act="push">Push to phones</button></div>'}
   if(lp){var open=live.open!==false,answered=answersFor(lp.id).length;
@@ -439,6 +491,7 @@ document.addEventListener('keydown',function(e){if(mode!=='presenter'||view.t!==
 app.addEventListener('input',function(e){var t=e.target;
   if(t.id==='din'){draft.text=t.value;if(live&&live.prompt)draft.pid=live.prompt.id;saveDraft()}
   else if(t.id==='jname')draft.name=t.value;
+  else if(t.id==='bseg'){bankSeg=t.value;drawBank()}
   else if(t.id==='at'){$('#aoWrap').style.display=t.value==='choice'?'block':'none'}});
 app.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b||b.tagName==='INPUT')return;act(b.getAttribute('data-act'),b.dataset)});
 app.addEventListener('change',function(e){if(e.target.getAttribute('data-act')==='names'){showNames=e.target.checked;renderPanel()}});
@@ -457,6 +510,7 @@ function act(a,d){
   else if(a==='askgo'){var q=($('#aq').value||'').trim(),ty=$('#at').value;if(!q)return flash('Type the question first.');var p={base:'adhoc',type:ty,q:q,seg:'Quick question'};
     if(ty==='choice'){p.options=($('#ao').value||'').split(',').map(function(x){return x.trim()}).filter(Boolean);if(p.options.length<2)return flash('Give at least two choices.')}
     push(p,'Quick question');$('#aq').value='';flash('Sent to phones.')}
+  else if(a==='bankgo'){var bq=BANK[+d.b];if(bq){push(bq,SEGS.filter(function(x){return x.id===bq.seg})[0].n);flash('Sent to phones.')}}
   else if(a==='ask'){go(0,0);setTimeout(function(){var d=$('#askd');if(d)d.open=true},0)}
   else if(a==='phone'){mode='phone';renderPhone()}
   else if(a==='topres'){mode='presenter';renderPresenter()}

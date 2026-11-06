@@ -107,6 +107,17 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phone.getByText('Sent ✓').waitFor();
     await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 }); ok('risk answer (4 × 2) reached host');
 
+    // Question bank: one tap pushes a ready question (Part 3: Occurrence 3 × Impact 4)
+    await host.click('#askd summary');
+    await host.locator('.bq', { hasText: 'Occurrence 3 × Impact 4' }).locator('[data-act=bankgo]').click();
+    await phone.getByText('Occurrence 3 × Impact 4. What is the Risk Rating?').waitFor({ timeout: 8000 });
+    await phone.fill('#din', '12');
+    await phone.click('[data-act=send]');
+    await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 });
+    await host.locator('.bq.on', { hasText: 'Occurrence 3 × Impact 4' }).waitFor(); ok('question bank push answered on phone');
+    await host.selectOption('#bseg', 'close');
+    await host.locator('.bq', { hasText: 'One thing you learned today.' }).waitFor(); ok('question bank switches segment');
+
     // Projector fit at 1280x720: no horizontal scroll, nav buttons visible
     const fit = await host.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
     assert.ok(fit.sw <= fit.cw, `horizontal scroll at 1280: ${fit.sw} > ${fit.cw}`);
