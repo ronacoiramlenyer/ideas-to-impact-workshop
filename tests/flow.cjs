@@ -149,11 +149,25 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phone.locator('[data-act=team][data-t="3"]', { hasText: 'Targaryen' }).waitFor(); ok('phone shows houses by name, full house disabled');
     await phone.click('[data-act=joingo]');
 
-    // Clear all (two taps)
+    // Host changes the house size on Home: 6 lets a sixth person in
+    r = await fetch(BASE + '/api/cap', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"cap":9}' });
+    assert.equal(r.status, 403);
     await host.click('[data-act=home]');
+    await host.locator('#hchips', { hasText: 'Lannister 5/5' }).waitFor({ timeout: 8000 });
+    await host.click('[data-act=capup]');
+    await host.locator('#capv', { hasText: '6' }).waitFor();
+    await host.waitForTimeout(500);
+    r = await fetch(BASE + '/api/teams'); assert.equal((await r.json()).cap, 6);
+    r = await fetch(BASE + '/api/me', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ cid: 'capx9', doc: { name: 'Six', team: 2, answers: {} } }) });
+    assert.equal(r.status, 200); ok('host raises house size to 6 on Home; sixth member accepted; non-host refused');
+
+    // Clear all (two taps)
     await host.click('[data-act=clear]');
     await host.click('[data-act=clear]');
-    await host.locator('#jn', { hasText: '0 joined' }).waitFor({ timeout: 8000 }); ok('clear all (two taps) wipes answers');
+    await host.locator('#jn', { hasText: '0 joined' }).waitFor({ timeout: 8000 });
+    r = await fetch(BASE + '/api/teams'); const after = await r.json();
+    assert.equal(after.cap, 6); assert.deepEqual(after.counts, {}); ok('clear all wipes answers and keeps the house size');
+    await host.click('[data-act=capdn]'); await host.locator('#capv', { hasText: '5' }).waitFor(); await host.waitForTimeout(500);
 
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('; ')); ok('no page errors');
     console.log(`\nAll ${step} checks passed against ${BASE}`);

@@ -12,7 +12,7 @@ const MAX = 8000;
 const CID = /^[a-z0-9]{4,40}$/i;
 const PID = /^[a-z0-9]{1,20}@[a-z0-9]{1,20}$/i; // question id: base@time36
 const TEAM_COUNT = 17; // houses; names live in public/index.html (TEAMS)
-const TEAM_CAP = 5;    // most members per house
+const TEAM_CAP = 5;    // default most members per house; the presenter can change it (1 to 40)
 
 export class Session {
   constructor(state) {
@@ -23,6 +23,7 @@ export class Session {
   }
 
   async rev() { return (await this.s.get("rev")) ?? 0; }
+  async cap() { return (await this.s.get("cap")) ?? TEAM_CAP; }
   // Members per house, optionally leaving one participant out.
   async counts(exceptCid) {
     const c = {};
@@ -60,14 +61,16 @@ export class Session {
     if (u.pathname === "/live" && req.method === "GET") return J({ live: (await this.s.get("live")) ?? null, epoch: await this.epoch() });
     if (u.pathname === "/live") { await this.s.put("live", await req.json()); await this.broadcast({ rev: false }); return J({ ok: true }); }
     if (u.pathname === "/me" && req.method === "GET") return J((await this.s.get("p:" + u.searchParams.get("cid"))) ?? null);
-    if (u.pathname === "/teams") return J({ cap: TEAM_CAP, counts: await this.counts() });
+    if (u.pathname === "/teams") return J({ cap: await this.cap(), counts: await this.counts() });
+    if (u.pathname === "/cap") { const b = await req.json(); await this.s.put("cap", b.cap); return J({ ok: true, cap: b.cap }); }
     if (u.pathname === "/me") {
       const b = await req.json();
-      // A house holds at most TEAM_CAP people. Only checked when someone joins or changes house.
+      // A house holds at most cap() people. Only checked when someone joins or changes house.
       const before = await this.s.get("p:" + b.cid);
       if (!before || before.team !== b.doc.team) {
         const counts = await this.counts(b.cid);
-        if ((counts[b.doc.team] || 0) >= TEAM_CAP) return J({ error: "team full", team: b.doc.team }, 409);
+        const cap = await this.cap();
+        if ((counts[b.doc.team] || 0) >= cap) return J({ error: "team full", team: b.doc.team, cap }, 409);
       }
       await this.s.put({ ["p:" + b.cid]: b.doc, rev: (await this.rev()) + 1 });
       await this.broadcast({ live: false });
@@ -78,9 +81,9 @@ export class Session {
       return J([...m].map(([k, v]) => ({ id: k.slice(2), data: v })));
     }
     if (u.pathname === "/clear") {
-      const rev = (await this.rev()) + 1, epoch = (await this.epoch()) + 1;
+      const rev = (await this.rev()) + 1, epoch = (await this.epoch()) + 1, cap = await this.cap();
       await this.s.deleteAll();
-      await this.s.put({ rev, epoch });
+      await this.s.put({ rev, epoch, cap }); // the house size setting survives Clear all
       await this.broadcast();
       return J({ ok: true });
     }
@@ -157,6 +160,12 @@ export default {
         return call("/live", { method: "POST", body: t });
       }
       if (path === "/teams" && req.method === "GET") return call("/teams");
+      if (path === "/cap" && req.method === "POST") {
+        if (!host) return J({ error: "forbidden" }, 403);
+        const b = JSON.parse(await req.text()), cap = Number(b && b.cap);
+        if (!Number.isInteger(cap) || cap < 1 || cap > 40) return J({ error: "bad request" }, 400);
+        return call("/cap", { method: "POST", body: JSON.stringify({ cap }) });
+      }
       if (path === "/me" && req.method === "GET") {
         const cid = url.searchParams.get("cid") || "";
         if (!CID.test(cid)) return J(null);

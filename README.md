@@ -12,7 +12,7 @@ Presenter screen + participant phones, no accounts needed. Runs on your own Clou
 
 ## Use it
 - Presenter: open `ADDRESS/?host` and enter the passcode.
-- Participants: scan the QR code on the first slide or the Home page (it points to `ADDRESS`). They type a first name, tap their house (17 houses, up to 5 people each; full houses are greyed out), and wait for your questions.
+- Participants: scan the QR code on the first slide or the Home page (it points to `ADDRESS`). They type a first name, tap their house (17 houses; full houses are greyed out). Set how many people fit in each house on Home under "Houses" (default 5), and wait for your questions.
 - Before the real session: Home > "Clear all answers" (tap twice) to wipe test data. Phones that joined during testing are asked to join again.
 - Test once with your own phone before the day.
 

@@ -132,6 +132,13 @@ table.itm td,table.itm th{vertical-align:middle}
 @media (max-width:700px){.opening{grid-template-columns:1fr}.joinbox{max-width:none}}
 .join .jt{display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px}
 
+.houses{margin-top:16px}
+.stepper{display:inline-flex;align-items:center;gap:8px}
+.stepper b{min-width:2ch;text-align:center;font-size:20px;font-variant-numeric:tabular-nums}
+.hchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.hchip{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:14px;color:var(--muted)}
+.hchip.some{color:var(--ink);border-color:var(--accent)}
+.hchip.full{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -409,7 +416,7 @@ function setLive(next){live=next;renderPanel();liveBusy++;
   chainL=chainL.then(function(){return api('/api/live',{key:KEY,body:next})}).then(function(){netOk(true)}).catch(function(){netOk(false);flash('Could not update the phones. Check the connection and try again.')}).then(function(){liveBusy--});return chainL}
 /* Answers are kept on the phone first. If sending fails, we retry when the connection comes back. */
 function saveMine(){var d=JSON.parse(JSON.stringify(mine));unsent=true;try{localStorage.setItem('iti_mine',JSON.stringify(d))}catch(e){}
-  chainM=chainM.then(function(){return api('/api/me',{body:{cid:uid,doc:d}})}).then(function(){savedTeam=d.team;if(JSON.stringify(mine)===JSON.stringify(d))unsent=false;netOk(true);return true}).catch(function(e){if(String(e.message)==='409'){unsent=false;var h=teamName(d.team);mine=Object.assign({},mine,{editProfile:true,team:savedTeam||0});draft={name:d.name,team:0};try{localStorage.removeItem('iti_mine')}catch(x){}loadTeams();flash('House '+h+' is full (5 of 5). Please pick another house.');return false}
+  chainM=chainM.then(function(){return api('/api/me',{body:{cid:uid,doc:d}})}).then(function(){savedTeam=d.team;if(JSON.stringify(mine)===JSON.stringify(d))unsent=false;netOk(true);return true}).catch(function(e){if(String(e.message)==='409'){unsent=false;var h=teamName(d.team);mine=Object.assign({},mine,{editProfile:true,team:savedTeam||0});draft={name:d.name,team:0};try{localStorage.removeItem('iti_mine')}catch(x){}loadTeams();flash('House '+h+' is full. Please pick another house.');return false}
     if(String(e.message)==='400'){unsent=false;flash('That answer could not be saved.');return false}netOk(false);return false});
   return chainM.then(function(ok){if(mode==='phone')renderPhone();return ok})}
 function retryUnsent(){if(unsent&&mine&&mode==='phone'&&epochKnown)saveMine()}
@@ -448,7 +455,8 @@ function renderPresenter(){
     app.innerHTML='<div class="home"><div class="hero"><div class="k">SK Leadership Session · South Caloocan</div><h1>From Ideas to Impact</h1><p>Planning Responsibly, Budgeting Transparently, and Managing Risks Proactively. '+tot+' minutes.</p></div>'
     +'<div class="strip">'+SEGS.map(function(s){return '<i style="flex:'+s.min+'" title="'+esc(s.n)+'"></i>'}).join('')+'</div>'
     +'<div class="segs">'+SEGS.map(function(s,i){var q=s.slides.filter(function(x){return x.prompt}).length;return '<button class="seg" data-act="open" data-s="'+i+'"><span class="n">'+(i+1)+' · '+s.min+' min</span><h2>'+esc(s.n)+'</h2><span class="muted">'+esc(s.tag)+'</span><span class="m"><span class="chip">'+s.slides.length+' slide'+(s.slides.length===1?'':'s')+'</span>'+(q?'<span class="chip gold">'+q+' phone question'+(q>1?'s':'')+'</span>':'')+'</span></button>'}).join('')+'</div>'
-    +'<div class="join">'+qrBlock('qrHome','150px')+'<div class="jt"><div class="row"><span id="jn" class="chip">'+resp.length+' joined</span>'+statusChip()+'</div><span class="muted">Participants scan the code or open <b>'+esc(JOIN_LABEL)+'</b> on their phone, type a first name, tap a team, and wait for your questions.</span></div></div>'
+    +'<div class="join">'+qrBlock('qrHome','150px')+'<div class="jt"><div class="row"><span id="jn" class="chip">'+resp.length+' joined</span>'+statusChip()+'</div><span class="muted">Participants scan the code or open <b>'+esc(JOIN_LABEL)+'</b> on their phone, type a first name, tap a house, and wait for your questions.</span></div></div>'
+    +'<div class="card houses"><div class="ph"><b>Houses</b><span class="muted">Members per house</span><span class="stepper"><button class="btn sm" data-act="capdn" aria-label="Fewer members per house">−</button><b id="capv">'+teamInfo.cap+'</b><button class="btn sm" data-act="capup" aria-label="More members per house">+</button></span><span class="muted" id="capnote"></span></div><div class="hchips" id="hchips"></div></div>'
     +'<div class="tools"><button class="btn" data-act="phone">Preview phone view</button><button class="btn" data-act="ask">Ask a question now</button><button class="btn ghost" data-act="clear">'+(clearArm?'Tap again to delete all answers':'Clear all answers')+'</button></div></div>';
     updJoined();return}
   var seg=SEGS[view.s],sl=seg.slides[view.i],T=timers[seg.id];
@@ -460,7 +468,14 @@ function renderPresenter(){
   if(sl.init)sl.init($('#sbody'),cleanup);
   updTimer();renderPanel()}
 function askForm(){return '<label class="lab">Or type your own question</label><input type="text" id="aq" placeholder="Type a question for the phones"><label class="lab">Answer type</label><select id="at"><option value="text">Short text</option><option value="choice">Choice</option><option value="number">Number</option><option value="scale">Rating 1 to 5</option><option value="risk">Risk (description + Occurrence × Impact)</option></select><div id="aoWrap" style="display:none"><label class="lab">Choices, separated by commas</label><input type="text" id="ao" placeholder="Yes, No, Not sure"></div><div class="row"><button class="btn pri sm" data-act="askgo">Push to phones</button></div>'}
-function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined'}
+function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';updHouses()}
+/* Home: members in each house, and the presenter's house size setting. */
+function updHouses(){var el=$('#hchips');if(!el)return;var c={};resp.forEach(function(r){var t=r.data&&r.data.team;if(t)c[t]=(c[t]||0)+1});var cap=teamInfo.cap;
+  el.innerHTML=TEAMS.map(function(t){var n=c[t.id]||0;return '<span class="hchip'+(n>=cap?' full':n?' some':'')+'">'+esc(t.name)+' <b>'+n+'/'+cap+'</b></span>'}).join('');
+  var v=$('#capv');if(v)v.textContent=cap;var room=TEAMS.length*cap,note=$('#capnote');if(note)note.textContent='Room for '+room+' people'+(resp.length>room?'. More people joined than there is room for: raise the limit.':'.')}
+var capBusy=false;
+function setCap(n){n=Math.max(1,Math.min(40,n));if(n===teamInfo.cap||capBusy)return;var old=teamInfo.cap;teamInfo.cap=n;updHouses();capBusy=true;
+  api('/api/cap',{key:KEY,body:{cap:n}}).then(function(){netOk(true);flash('Up to '+n+' per house. Phones update in a few seconds.')}).catch(function(){teamInfo.cap=old;updHouses();flash('Could not change the house size. Check the connection.')}).then(function(){capBusy=false})}
 function renderPanel(){var el=$('#plive');if(!el)return;drawBank();var sl=curSlide(),sp=sl&&sl.prompt,lp=live&&live.prompt;
   var h='<div class="card"><div class="ph"><b>Phones</b><span class="chip">'+resp.length+' joined</span>'+statusChip()+'</div>';
   if(sp&&!(lp&&lp.base===sp.base)){h+='<div class="pq">'+esc(sp.q)+'</div><div class="row"><button class="btn pri" data-act="push">Push to phones</button></div>'}
@@ -563,6 +578,8 @@ function act(a,d){
     push(p,'Quick question');$('#aq').value='';flash('Sent to phones.')}
   else if(a==='bankgo'){var bq=BANK[+d.b];if(bq){used[bq.base]=1;saveUsed();push(bq,SEGS.filter(function(x){return x.id===bq.seg})[0].n);flash('Sent to phones.')}}
   else if(a==='bankused'){showUsed=!showUsed;drawBank()}
+  else if(a==='capup')setCap(teamInfo.cap+1);
+  else if(a==='capdn')setCap(teamInfo.cap-1);
   else if(a==='ask'){go(0,0);setTimeout(function(){var d=$('#askd');if(d)d.open=true},0)}
   else if(a==='phone'){mode='phone';renderPhone()}
   else if(a==='topres'){mode='presenter';renderPresenter()}
@@ -583,7 +600,7 @@ async function clearAll(){try{await api('/api/clear',{key:KEY,body:{}});resp=[];
 
 /* ---------- boot ---------- */
 function unlockForm(msg){app.innerHTML='<div class="phone"><div><div class="brand">Facilitator</div><h1>From Ideas to Impact</h1></div><div class="card"><label class="lab">Presenter passcode</label><input type="password" id="pk" style="width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:42px" autocomplete="current-password">'+(msg?'<p style="color:var(--bad)">'+esc(msg)+'</p>':'')+'<div class="row"><button class="btn pri" data-act="unlock">Open presenter view</button></div></div></div>'}
-async function startHost(k){try{await api('/api/responses',{key:k});KEY=k;try{sessionStorage.setItem('iti_key',k)}catch(e){}isOwner=true;mode='presenter';return true}catch(e){return false}}
+async function startHost(k){try{await api('/api/responses',{key:k});KEY=k;loadTeams().then(updHouses);try{sessionStorage.setItem('iti_key',k)}catch(e){}isOwner=true;mode='presenter';return true}catch(e){return false}}
 
 /* ---------- live connection ----------
    One WebSocket per screen; the server pushes the question when it changes, so
