@@ -14,9 +14,12 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
 
 (async () => {
   fs.mkdirSync(SHOTS, { recursive: true });
-  const browser = await chromium.launch();
-  const hostCtx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-  const phoneCtx = await browser.newContext({ ...devices['Pixel 5'] });
+  // Behind a corporate/sandbox proxy, set HTTPS_PROXY (and NODE_USE_ENV_PROXY=1 for Node's own fetch).
+  const proxy = !BASE.includes('127.0.0.1') && process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
+  const browser = await chromium.launch(proxy ? { proxy } : {});
+  const extra = proxy ? { ignoreHTTPSErrors: true } : {};
+  const hostCtx = await browser.newContext({ viewport: { width: 1280, height: 720 }, ...extra });
+  const phoneCtx = await browser.newContext({ ...devices['Pixel 5'], ...extra });
   const host = await hostCtx.newPage();
   const phone = await phoneCtx.newPage();
   const errors = [];

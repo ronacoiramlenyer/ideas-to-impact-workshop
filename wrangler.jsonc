@@ -2,7 +2,8 @@
   "name": "ideas-to-impact",
   "main": "src/index.js",
   "compatibility_date": "2025-01-01",
-  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
+  // public/index.html is bundled into the Worker as text (no separate asset upload).
+  "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": false }],
   "durable_objects": { "bindings": [{ "name": "SESSION", "class_name": "Session" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Session"] }]
 }

@@ -5,6 +5,8 @@
 // 40-phone, 2-hour session at a few thousand requests instead of ~144,000 polls
 // (the Workers Free plan allows 100,000 requests per day). Phones fall back to slow
 // polling of GET /api/live only if their WebSocket cannot connect.
+import PAGE from "../public/index.html";
+
 const J = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 const MAX = 8000;
 const CID = /^[a-z0-9]{4,40}$/i;
@@ -118,7 +120,10 @@ function cleanLive(t) {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(req);
+    if (!url.pathname.startsWith("/api/")) {
+      if (req.method !== "GET" && req.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
+      return new Response(req.method === "HEAD" ? null : PAGE, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache", "x-content-type-options": "nosniff", "referrer-policy": "no-referrer" } });
+    }
     const stub = env.SESSION.get(env.SESSION.idFromName("main"));
     const host = !!env.PRESENTER_KEY && req.headers.get("x-key") === env.PRESENTER_KEY;
     const path = url.pathname.slice(4);
