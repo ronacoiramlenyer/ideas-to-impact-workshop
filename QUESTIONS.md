@@ -1,8 +1,8 @@
 # Question bank: facilitator answer key
 
-54 questions are built into the presenter screen. On any slide, open **Question bank and ask now**, pick the segment, and tap **Push**. A pushed question leaves the list (tap **Show pushed** to repeat one; **Clear all answers** resets the list). Answers are not shown on the projector; they appear on screen and on phones only when you tap **Show result on phones**. Habit checks follow the cues in the talk outline.
+53 questions are built into the presenter screen. On any slide, open **Question bank and ask now**, pick the segment, and tap **Push**. A pushed question leaves the list (tap **Show pushed** to repeat one; **Clear all answers** resets the list). Answers are not shown on the projector; they appear on screen and on phones only when you tap **Show result on phones**. Habit checks follow the cues in the talk outline.
 
-Risk Rating = Occurrence + Impact (2 to 10), per the office Risk Legend: Low 2–3, Medium 4–6, High 7–8, Extreme 9–10. Treatment: 6 and below Accept; above 6 Reduce, Transfer / Share, or Avoid (High needs Committee approval; Extreme, the Committee decides).
+Risk Rating = Occurrence + Impact (2 to 10), per the office Risk Legend. 6 and below: Accept. Above 6: Reduce, Transfer / Share, or Avoid, and the Committee must approve.
 
 Keep this page for yourself.
 
@@ -44,11 +44,10 @@ Keep this page for yourself.
 ## Part 3 · Manage Risks Proactively (40 min)
 
 - *Number* — Occurrence 3 + Impact 4. What is the Risk Rating? **Answer: 7**
-- *Choice* — A Risk Rating of 5 (Medium). What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid] **Answer: Accept**
-- *Choice* — A Risk Rating of 8 (High). What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid] **Answer: Reduce, Transfer / Share, or Avoid**
-- *Choice* — A Risk Rating of 7 is in which level? [Low / Medium / High / Extreme] **Answer: High**
-- *Choice* — A Risk Rating of 3 (Low). What is the treatment? [Accept / Reduce / Transfer / Share / Avoid] **Answer: Accept**
-- *Choice* — A Risk Rating of 9 (Extreme). What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid; the Committee decides / Ignore it] **Answer: Reduce, Transfer / Share, or Avoid; the Committee decides**
+- *Choice* — A Risk Rating of 5. What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid] **Answer: Accept**
+- *Choice* — A Risk Rating of 8. What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid] **Answer: Reduce, Transfer / Share, or Avoid**
+- *Choice* — A Risk Rating of 7. Does the Committee need to approve? [Yes, it is above 6 / No] **Answer: Yes, it is above 6**
+- *Choice* — A Risk Rating of 6. What is the treatment? [Accept / Reduce, Transfer / Share, or Avoid] **Answer: Accept**
 - *Choice* — Additional Controls lower which number? [Occurrence / Impact / The budget / The number of participants] **Answer: Occurrence**
 - *Choice* — Mitigation lowers which number? [Occurrence / Impact / The budget / The number of participants] **Answer: Impact**
 - *Choice* — A participant needs a clinic visit but is not hospitalized. What is the Impact? [1 Negligible / 2 Minor / 3 Moderate / 4 Significant] **Answer: 2 Minor**
@@ -61,7 +60,7 @@ Keep this page for yourself.
 - *Choice* — "First-aid kit on site" is… [A control / A mitigation / An action] **Answer: A control**
 - *Choice* — "Safety officer buys and checks the first-aid kit by Nov 20" is… [A control / A mitigation / An action] **Answer: An action**
 - *Choice* — Who should be the owner of a risk? [One named person / Everyone / The whole SK / Whoever is free on the day] **Answer: One named person**
-- *Choice* — After controls, the Residual Risk Rating is still High. What now? [The Committee must approve before the activity proceeds / Proceed anyway / Accept it / Delete the risk] **Answer: The Committee must approve before the activity proceeds**
+- *Choice* — After controls, the Residual Risk Rating is still above 6. What now? [The Committee must approve before the activity proceeds / Proceed anyway / Accept it / Delete the risk] **Answer: The Committee must approve before the activity proceeds**
 
 ## Peer review and approval (6 min)
 
