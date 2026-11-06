@@ -566,8 +566,7 @@ function renderPhoneInner(){
     function tb(t){var n=counts[t.id]||0,own=savedTeam===t.id?1:0,full=n-own>=cap&&tm!==t.id;
       return '<button data-act="team" data-t="'+t.id+'" class="'+(tm===t.id?'on':'')+(full?' full':'')+'"'+(full?' disabled aria-disabled="true"':'')+'><span>'+esc(t.name)+'</span><small>'+(full?'Full':n+'/'+cap)+'</small></button>'}
     h+='<div class="card"><b>Join the session</b><label class="lab">Your name</label><input type="text" id="jname" maxlength="40" value="'+esc(nm)+'" placeholder="First name"><label class="lab">Your house <span class="muted" style="font-weight:400">(up to '+cap+' per house)</span></label>'
-      +'<div class="hgrp">Great Houses</div><div class="teams">'+TEAMS.filter(function(t){return t.g===1}).map(tb).join('')+'</div>'
-      +'<div class="hgrp">Other Houses</div><div class="teams">'+TEAMS.filter(function(t){return t.g===2}).map(tb).join('')+'</div>'
+      +'<div class="teams">'+TEAMS.map(tb).join('')+'</div>'
       +'<div class="row"><button class="btn pri" data-act="joingo">Join</button></div></div></div>';app.innerHTML=h;watchTeams();return}
   stopTeams();h+='<div class="muted">'+esc(mine.name)+' · House '+esc(teamName(mine.team))+' <button class="btn sm ghost" data-act="editprof">Change</button></div>';
   var lp=live&&live.prompt;
