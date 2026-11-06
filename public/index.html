@@ -143,6 +143,7 @@ table.itm td,table.itm th{vertical-align:middle}
 .ptab{display:none}
 .stage.collapsed #panel{display:none}
 .stage.collapsed .ptab{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 12px;font-weight:700;color:var(--accent)}
+.stage.collapsed .ptab.cue{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
 .ptab b{background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:1px 8px;font-size:13px}
 @media (min-width:1000px){
   .stage.withp{transition:grid-template-columns .25s ease}
@@ -151,9 +152,7 @@ table.itm td,table.itm th{vertical-align:middle}
   .stage.collapsed .ptab span{writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.06em}
 }
 @media (prefers-reduced-motion:reduce){.stage.withp{transition:none}}
-.habit{display:flex;gap:12px;align-items:center;background:var(--gold-soft);border-left:5px solid var(--gold);border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:clamp(15px,min(1.7vw,2.7vh),20px)}
-.habit b{display:block;color:var(--gold)}
-.habit .hn{flex:none;width:clamp(34px,4.5vh,44px);height:clamp(34px,4.5vh,44px);border-radius:50%;background:var(--gold);color:var(--surface);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:clamp(18px,2.6vh,24px)}
+.hint{background:var(--gold-soft);color:var(--gold);border-radius:8px;padding:6px 10px;font-weight:600;font-size:14px;margin:8px 0 2px}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -278,7 +277,7 @@ var SEGS=[
  {t:'The 7 Habits, as a memory device',k:'Primer · 4 min',body:function(){return '<ol style="font-size:clamp(16px,2vw,22px);columns:2;column-gap:32px;padding-left:1.2em">'+HABITS.map(function(h,i){return '<li'+(i===3?' style="font-weight:800;color:var(--gold)"':'')+'>'+h+'</li>'}).join('')+'</ol><p><b>Habit 4, Win-Win, is the middle.</b> Count from it and the rest follow.</p><div class="grid2"><div class="box"><b>Part 1 · Plan</b>Begin with the End in Mind</div><div class="box"><b>Part 2 · Budget</b>Put First Things First</div><div class="box"><b>Part 3 · Risks</b>Be Proactive</div></div>'}}
 ]},
 {id:'p1',n:'Part 1 · Plan Responsibly',min:24,tag:'Start from the result you want. Write an objective you can measure, and say how you will check it.',slides:[
- {t:'Start with the result, not the activity',k:'Part 1 · Plan Responsibly',body:function(){return '<div class="habit"><span class="hn">2</span><div><b>Habit 2 · Begin with the End in Mind</b>Know the result you want before you plan a single activity.</div></div><div class="grid2"><div class="box weak"><b>Weak</b>"Hold a basketball league."</div><div class="box strong"><b>Strong</b>"Keep 60 youth active and off the streets for one summer, shown by weekly attendance."</div></div><p>An objective says what changes, for whom, and how we will know.</p><div class="formula">To <span class="blank">do what</span> for <span class="blank">whom</span> so that <span class="blank">result</span>, measured by <span class="blank">KPI</span>, target <span class="blank">number</span>, by <span class="blank">date</span>.</div>'}},
+ {t:'Start with the result, not the activity',k:'Part 1 · Plan Responsibly',body:function(){return '<div class="grid2"><div class="box weak"><b>Weak</b>"Hold a basketball league."</div><div class="box strong"><b>Strong</b>"Keep 60 youth active and off the streets for one summer, shown by weekly attendance."</div></div><p>An objective says what changes, for whom, and how we will know.</p><div class="formula">To <span class="blank">do what</span> for <span class="blank">whom</span> so that <span class="blank">result</span>, measured by <span class="blank">KPI</span>, target <span class="blank">number</span>, by <span class="blank">date</span>.</div>'},habitCheck:true,prompt:{base:'h2',type:'choice',q:'Start with the result, not the activity. Which habit is that?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:1}},
  {id:'objb',t:'Build an objective',k:'Try it together',body:function(){return '<div class="form3"><div><label>To (do what)</label><input type="text" data-f="a" placeholder="e.g. train youth in basic first aid"></div><div><label>for (whom)</label><input type="text" data-f="b" placeholder="e.g. 40 youth of our barangay"></div><div><label>so that (result)</label><input type="text" data-f="c" placeholder="e.g. they can respond to emergencies"></div><div><label>measured by (KPI)</label><input type="text" data-f="d" placeholder="e.g. passing a skills check"></div><div><label>target (number)</label><input type="text" data-f="e" placeholder="e.g. 32 of 40"></div><div><label>by (date)</label><input type="text" data-f="f" placeholder="e.g. March 30"></div></div><div class="formula" id="objOut" style="margin-top:16px"></div><div class="row"><button class="btn sm" data-act="objex">Fill an example</button><button class="btn sm ghost" data-act="objclr">Clear</button></div>'},init:function(root){
    var F={a:'',b:'',c:'',d:'',e:'',f:''};
    function w(k,l){return F[k]?'<b>'+esc(F[k])+'</b>':'<span class="blank">'+l+'</span>'}
@@ -493,6 +492,7 @@ function setCap(n){n=Math.max(1,Math.min(40,n));if(n===teamInfo.cap||capBusy)ret
   api('/api/cap',{key:KEY,body:{cap:n}}).then(function(){netOk(true);flash('Up to '+n+' per house. Phones update in a few seconds.')}).catch(function(){teamInfo.cap=old;updHouses();flash('Could not change the house size. Check the connection.')}).then(function(){capBusy=false})}
 function renderPanel(){var el=$('#plive');if(!el)return;drawBank();var sl=curSlide(),sp=sl&&sl.prompt,lp=live&&live.prompt;
   var h='<div class="card"><div class="ph"><b>Phones</b><span class="chip">'+resp.length+' joined</span>'+statusChip()+'</div>';
+  if(sl&&sl.habitCheck)h+='<div class="hint">Habit check: ask the room which habit this is.</div>';
   if(sp&&!(lp&&lp.base===sp.base)){h+='<div class="pq">'+esc(sp.q)+'</div><div class="row"><button class="btn pri" data-act="push">Push to phones</button></div>'}
   if(lp){var open=live.open!==false,answered=answersFor(lp.id).length;
     h+=(sp&&lp.base===sp.base?'':'<hr style="border:0;border-top:1px solid var(--line)"><span class="chip gold">Live question</span>')+'<div class="pq">'+esc(lp.q)+'</div><div class="ph"><span class="chip '+(open?'ok':'')+'">'+(open?'Open':'Closed')+'</span><span class="muted">'+answered+' of '+resp.length+' answered</span></div>'
@@ -504,7 +504,9 @@ function renderPanel(){var el=$('#plive');if(!el)return;drawBank();var sl=curSli
 var panelHidden=false;try{panelHidden=localStorage.getItem('iti_panel')==='hidden'}catch(e){}
 function togglePanel(){panelHidden=!panelHidden;try{localStorage.setItem('iti_panel',panelHidden?'hidden':'shown')}catch(e){}
   var st=$('#stage'),b=$('#pbtn');if(st)st.classList.toggle('collapsed',panelHidden);if(b){b.textContent=panelHidden?'◂ Show questions':'Hide questions ▸';b.setAttribute('aria-expanded',String(!panelHidden))}updTab()}
-function updTab(){var el=$('#ptabn');if(!el)return;var lp=live&&live.prompt;el.textContent=lp?answersFor(lp.id).length+'/'+resp.length:'';el.style.display=lp?'':'none'}
+/* Next/Back always start the slide at full width; the Questions tab brings the panel back. */
+function hidePanelOnNav(){if(panelHidden)return;panelHidden=true;try{localStorage.setItem('iti_panel','hidden')}catch(e){}}
+function updTab(){var el=$('#ptabn');if(!el)return;var sl=curSlide(),tab=el.parentNode;tab.classList.toggle('cue',!!(sl&&(sl.prompt||sl.habitCheck)));tab.title=sl&&sl.habitCheck?'Habit check on this slide':sl&&sl.prompt?'This slide has a phone question':'';var lp=live&&live.prompt;el.textContent=lp?answersFor(lp.id).length+'/'+resp.length:'';el.style.display=lp?'':'none'}
 function updTimer(){if(view.t!=='slide')return;var T=timers[SEGS[view.s].id],t=$('#tmr'),b=$('#tgo');if(!t)return;t.textContent=fmt(T.left);t.classList.toggle('over',T.left<0);b.textContent=T.run?'Pause':'Start'}
 setInterval(function(){var any=false;SEGS.forEach(function(s){if(timers[s.id].run){timers[s.id].left--;any=true}});if(any)updTimer()},1000);
 function push(p,seg){var o={id:p.base+'@'+Date.now().toString(36),base:p.base,type:p.type,q:p.q,seg:seg||''};if(p.options)o.options=p.options;if(p.correct!=null)o.correct=p.correct;setLive({prompt:o,open:true,result:null,ts:Date.now()})}
@@ -585,8 +587,8 @@ function act(a,d){
   var seg=view.t==='slide'?SEGS[view.s]:null;
   if(a==='open')go(+d.s,0);
   else if(a==='home')go();
-  else if(a==='next'){if(view.i<seg.slides.length-1)go(view.s,view.i+1);else if(view.s<SEGS.length-1)go(view.s+1,0);else go()}
-  else if(a==='prev'){if(view.i>0)go(view.s,view.i-1);else if(view.s>0)go(view.s-1,SEGS[view.s-1].slides.length-1);else go()}
+  else if(a==='next'){hidePanelOnNav();if(view.i<seg.slides.length-1)go(view.s,view.i+1);else if(view.s<SEGS.length-1)go(view.s+1,0);else go()}
+  else if(a==='prev'){hidePanelOnNav();if(view.i>0)go(view.s,view.i-1);else if(view.s>0)go(view.s-1,SEGS[view.s-1].slides.length-1);else go()}
   else if(a==='tgo'){var T=timers[seg.id];T.run=!T.run;updTimer()}
   else if(a==='trs'){timers[seg.id]={left:seg.min*60,run:false};updTimer()}
   else if(a==='push'){var sl=curSlide();if(sl&&sl.prompt)push(sl.prompt,sl.prompt.seg)}

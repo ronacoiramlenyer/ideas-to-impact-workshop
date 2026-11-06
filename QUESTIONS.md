@@ -15,6 +15,7 @@ Keep this page for yourself.
 
 ## Part 1 · Plan Responsibly (24 min)
 
+- *Choice, on the "Start with the result, not the activity" slide* — Start with the result, not the activity. Which habit is that? [the 7 habits] **Answer: 2 Begin with the End in Mind**
 - *Choice* — "Hold a basketball league" is… [An activity, not yet an objective / A strong objective / A KPI / A risk] **Answer: An activity, not yet an objective**
 - *Choice* — In the objective formula, what comes right after "so that"? [The activity / The result / The budget / The date] **Answer: The result**
 - *Choice* — Which part makes an objective measurable? [The KPI and target / A catchy title / The venue / The number of SK officials] **Answer: The KPI and target**

@@ -25,6 +25,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
   const errors = [];
   for (const [n, p] of [['host', host], ['phone', phone]]) p.on('pageerror', (e) => errors.push(`${n}: ${e.message}`));
 
+  const openPanel = async () => { if (await host.locator('.ptab').isVisible()) { await host.click('.ptab'); await host.locator('#panel').waitFor(); } };
   try {
     // API guards
     let r = await fetch(BASE + '/api/live', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"prompt":null}' });
@@ -61,7 +62,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
 
     // Text question: draft survives re-renders (polls, presenter changes)
     await host.click('[data-act=next]');
-    await host.click('[data-act=push]');
+    await openPanel(); await host.click('[data-act=push]');
     await phone.locator('#din').waitFor({ timeout: 8000 });
     await phone.fill('#din', 'The sound system died');
     await host.click('[data-act=toggleopen]'); // close → phone re-renders
@@ -78,7 +79,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await host.click('[data-act=open][data-s="2"]');
     for (let i = 0; i < 3; i++) await host.click('[data-act=next]');
     await host.getByRole('heading', { name: 'Your turn' }).waitFor();
-    await host.click('[data-act=push]');
+    await openPanel(); await host.click('[data-act=push]');
     await phone.locator('input#din[type=number]').waitFor({ timeout: 8000 }); ok('number question pushed to phone');
     await phone.fill('#din', '20');
     await phone.click('[data-act=send]');
@@ -97,7 +98,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
       if (await host.getByRole('heading', { name: "Your team's biggest risk" }).count()) break;
       await host.click('[data-act=next]');
     }
-    await host.click('[data-act=push]');
+    await openPanel(); await host.click('[data-act=push]');
     await phone.locator('textarea#din').waitFor({ timeout: 8000 });
     await phone.fill('#din', 'Rain on the day');
     await phone.click('[data-act=occ][data-n="4"]');
@@ -108,7 +109,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 }); ok('risk answer (4 × 2) reached host');
 
     // Question bank: one tap pushes a ready question (Part 3: Occurrence 3 × Impact 4)
-    await host.click('#askd summary');
+    await openPanel(); await host.click('#askd summary');
     await host.locator('.bq', { hasText: 'Occurrence 3 × Impact 4' }).locator('[data-act=bankgo]').click();
     await phone.getByText('Occurrence 3 × Impact 4. What is the Risk Rating?').waitFor({ timeout: 8000 });
     await phone.fill('#din', '12');
@@ -132,6 +133,11 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await host.screenshot({ path: SHOTS + '/host-panel-hidden.png' });
     await host.click('.ptab');
     await host.locator('#panel').waitFor(); ok('questions panel hides sideways and reopens from the edge tab');
+    await host.click('[data-act=prev]');
+    await host.locator('#panel').waitFor({ state: 'hidden' }); await host.locator('.ptab').waitFor();
+    await host.click('.ptab'); await host.keyboard.press('ArrowRight');
+    await host.locator('#panel').waitFor({ state: 'hidden' }); ok('Back, Next and arrow keys slide the panel away');
+    await openPanel();
 
     // Projector fit at 1280x720: no horizontal scroll, nav buttons visible
     const fit = await host.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
