@@ -121,6 +121,18 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await host.selectOption('#bseg', 'close');
     await host.locator('.bq', { hasText: 'One thing you learned today.' }).waitFor(); ok('question bank switches segment');
 
+    // Questions panel collapses sideways and comes back; the slide gets wider
+    const w0 = await host.locator('#slide').evaluate((e) => e.getBoundingClientRect().width);
+    await host.click('#pbtn');
+    await host.locator('#panel').waitFor({ state: 'hidden' });
+    await host.locator('.ptab').waitFor();
+    await host.waitForTimeout(400);
+    const w1 = await host.locator('#slide').evaluate((e) => e.getBoundingClientRect().width);
+    assert.ok(w1 > w0 + 200, `slide did not widen: ${w0} → ${w1}`);
+    await host.screenshot({ path: SHOTS + '/host-panel-hidden.png' });
+    await host.click('.ptab');
+    await host.locator('#panel').waitFor(); ok('questions panel hides sideways and reopens from the edge tab');
+
     // Projector fit at 1280x720: no horizontal scroll, nav buttons visible
     const fit = await host.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
     assert.ok(fit.sw <= fit.cw, `horizontal scroll at 1280: ${fit.sw} > ${fit.cw}`);

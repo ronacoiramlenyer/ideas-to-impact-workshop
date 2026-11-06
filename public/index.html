@@ -139,6 +139,18 @@ table.itm td,table.itm th{vertical-align:middle}
 .hchip{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:14px;color:var(--muted)}
 .hchip.some{color:var(--ink);border-color:var(--accent)}
 .hchip.full{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
+/* collapsible questions panel */
+.ptab{display:none}
+.stage.collapsed #panel{display:none}
+.stage.collapsed .ptab{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 12px;font-weight:700;color:var(--accent)}
+.ptab b{background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:1px 8px;font-size:13px}
+@media (min-width:1000px){
+  .stage.withp{transition:grid-template-columns .25s ease}
+  .stage.withp.collapsed{grid-template-columns:minmax(0,1fr) 44px}
+  .stage.collapsed .ptab{flex-direction:column;padding:12px 0;height:100%;max-height:340px}
+  .stage.collapsed .ptab span{writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:.06em}
+}
+@media (prefers-reduced-motion:reduce){.stage.withp{transition:none}}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -461,8 +473,8 @@ function renderPresenter(){
     updJoined();return}
   var seg=SEGS[view.s],sl=seg.slides[view.i],T=timers[seg.id];
   app.className='deck';
-  app.innerHTML='<div class="top"><button class="btn sm" data-act="home">← Home</button><span class="chip">'+esc(seg.n)+'</span><span class="sp"></span><span class="tmr" id="tmr"></span><button class="btn sm" data-act="tgo" id="tgo"></button><button class="btn sm ghost" data-act="trs">Reset</button></div>'
-  +'<div class="stage withp"><section class="slide" id="slide"><div class="kick">'+esc(sl.k||'')+'</div><h2>'+esc(sl.t)+'</h2><div id="sbody">'+sl.body()+'</div></section><aside id="panel"><div id="plive"></div><details id="askd" class="card"'+(sl.prompt?'':' open')+'><summary><b>Question bank and ask now</b></summary><div id="bankw"></div><hr class="sep"><div id="askf"></div></details></aside></div>'
+  app.innerHTML='<div class="top"><button class="btn sm" data-act="home">← Home</button><span class="chip">'+esc(seg.n)+'</span><span class="sp"></span><span class="tmr" id="tmr"></span><button class="btn sm" data-act="tgo" id="tgo"></button><button class="btn sm ghost" data-act="trs">Reset</button><button class="btn sm ghost pbtn" data-act="panel" id="pbtn" aria-controls="panel" aria-expanded="'+!panelHidden+'">'+(panelHidden?'◂ Show questions':'Hide questions ▸')+'</button></div>'
+  +'<div class="stage withp'+(panelHidden?' collapsed':'')+'" id="stage"><section class="slide" id="slide"><div class="kick">'+esc(sl.k||'')+'</div><h2>'+esc(sl.t)+'</h2><div id="sbody">'+sl.body()+'</div></section><button class="ptab" data-act="panel" aria-label="Show questions panel"><span>Questions</span><b id="ptabn"></b></button><aside id="panel"><div id="plive"></div><details id="askd" class="card"'+(sl.prompt?'':' open')+'><summary><b>Question bank and ask now</b></summary><div id="bankw"></div><hr class="sep"><div id="askf"></div></details></aside></div>'
   +'<div class="bottom"><button class="btn" data-act="prev">← Back</button><div class="dots">'+seg.slides.map(function(x,i){return '<i class="'+(i===view.i?'on':'')+'"></i>'}).join('')+'</div><button class="btn pri" data-act="next">'+(view.i===seg.slides.length-1?(view.s===SEGS.length-1?'Home':'Next segment →'):'Next →')+'</button></div>';
   bankSeg=null;$('#askf').innerHTML=askForm();drawBank();
   if(sl.init)sl.init($('#sbody'),cleanup);
@@ -484,7 +496,12 @@ function renderPanel(){var el=$('#plive');if(!el)return;drawBank();var sl=curSli
     +'<div class="row"><button class="btn sm" data-act="toggleopen">'+(open?'Close answers':'Reopen')+'</button>'+((lp.type==='choice'||lp.type==='number'||lp.type==='scale')?'<button class="btn sm" data-act="reveal">'+(live.result?'Hide from phones':'Show result on phones')+'</button>':'')+'<button class="btn sm ghost" data-act="remove">Remove from phones</button><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-act="names" '+(showNames?'checked':'')+'> names</label></div>'+resultsHTML(lp);
     if(sp&&lp.base===sp.base){h+='<div class="row"><button class="btn sm" data-act="push">Push again (new round)</button></div>'}}
   else if(!sp)h+='<p class="muted">No question on the phones. Slides with a phone question show a Push button here.</p>';
-  el.innerHTML=h+'</div>'}
+  el.innerHTML=h+'</div>';updTab()}
+/* Questions panel can slide away so the slide uses the full width. Remembered per browser. */
+var panelHidden=false;try{panelHidden=localStorage.getItem('iti_panel')==='hidden'}catch(e){}
+function togglePanel(){panelHidden=!panelHidden;try{localStorage.setItem('iti_panel',panelHidden?'hidden':'shown')}catch(e){}
+  var st=$('#stage'),b=$('#pbtn');if(st)st.classList.toggle('collapsed',panelHidden);if(b){b.textContent=panelHidden?'◂ Show questions':'Hide questions ▸';b.setAttribute('aria-expanded',String(!panelHidden))}updTab()}
+function updTab(){var el=$('#ptabn');if(!el)return;var lp=live&&live.prompt;el.textContent=lp?answersFor(lp.id).length+'/'+resp.length:'';el.style.display=lp?'':'none'}
 function updTimer(){if(view.t!=='slide')return;var T=timers[SEGS[view.s].id],t=$('#tmr'),b=$('#tgo');if(!t)return;t.textContent=fmt(T.left);t.classList.toggle('over',T.left<0);b.textContent=T.run?'Pause':'Start'}
 setInterval(function(){var any=false;SEGS.forEach(function(s){if(timers[s.id].run){timers[s.id].left--;any=true}});if(any)updTimer()},1000);
 function push(p,seg){var o={id:p.base+'@'+Date.now().toString(36),base:p.base,type:p.type,q:p.q,seg:seg||''};if(p.options)o.options=p.options;if(p.correct!=null)o.correct=p.correct;setLive({prompt:o,open:true,result:null,ts:Date.now()})}
@@ -553,7 +570,7 @@ function sendAnswer(){var lp=live&&live.prompt;if(!lp)return;var v,t=$('#din');
   saveDraft();saveMine().then(function(ok){if(ok===false&&unsent)flash('No connection. Your answer is saved and will be sent automatically.')})}
 
 /* ---------- events ---------- */
-document.addEventListener('keydown',function(e){if(mode!=='presenter'||view.t!=='slide')return;var tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return;if(e.key==='ArrowRight')act('next',{});else if(e.key==='ArrowLeft')act('prev',{})});
+document.addEventListener('keydown',function(e){if(mode!=='presenter'||view.t!=='slide')return;var tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return;if(e.key==='ArrowRight')act('next',{});else if(e.key==='ArrowLeft')act('prev',{});else if((e.key==='q'||e.key==='Q')&&!e.ctrlKey&&!e.metaKey&&!e.altKey)togglePanel()});
 app.addEventListener('input',function(e){var t=e.target;
   if(t.id==='din'){draft.text=t.value;if(live&&live.prompt)draft.pid=live.prompt.id;saveDraft()}
   else if(t.id==='jname')draft.name=t.value;
@@ -578,6 +595,7 @@ function act(a,d){
     push(p,'Quick question');$('#aq').value='';flash('Sent to phones.')}
   else if(a==='bankgo'){var bq=BANK[+d.b];if(bq){used[bq.base]=1;saveUsed();push(bq,SEGS.filter(function(x){return x.id===bq.seg})[0].n);flash('Sent to phones.')}}
   else if(a==='bankused'){showUsed=!showUsed;drawBank()}
+  else if(a==='panel')togglePanel();
   else if(a==='capup')setCap(teamInfo.cap+1);
   else if(a==='capdn')setCap(teamInfo.cap-1);
   else if(a==='ask'){go(0,0);setTimeout(function(){var d=$('#askd');if(d)d.open=true},0)}
