@@ -168,6 +168,28 @@ table.xm td{font-weight:800;color:var(--b-ink);font-size:1.15em}
 .xkey i.low{background:var(--b-low)} .xkey i.high{background:var(--b-high)}
 table.xm td small{display:block;font-weight:600;opacity:.65;font-size:.8em}
 table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)} table.xm td.high{background:var(--b-high)} table.xm td.ext{background:var(--b-ext)}
+.loop{display:grid;grid-template-columns:minmax(0,1fr) 130px minmax(0,1fr) 130px minmax(0,1fr);gap:0;align-items:stretch}
+.lnode{background:var(--surface2);border-radius:12px;border-top:5px solid var(--accent);padding:12px 14px;display:flex;flex-direction:column;gap:4px;font-size:clamp(14px,min(1.6vw,2.6vh),19px);position:relative}
+.lnode b{font-size:clamp(17px,min(2vw,3.2vh),24px);line-height:1.15}
+.lnode i{color:var(--gold);font-weight:700;font-style:normal}
+.lnode .ln{position:absolute;top:-14px;right:10px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
+.larrow{display:flex;align-items:center;justify-content:center;position:relative}
+.larrow::before{content:'';position:absolute;left:6px;right:14px;top:50%;border-top:3px solid var(--accent)}
+.larrow::after{content:'';position:absolute;right:4px;top:calc(50% - 8px);border:8px solid transparent;border-left:12px solid var(--accent);border-right:0}
+.larrow span{position:absolute;left:8px;right:8px;bottom:calc(50% + 8px);color:var(--muted);font-size:13px;line-height:1.25;text-align:center}
+.lback{grid-column:1/-1;display:flex;gap:12px;align-items:center;margin-top:16px;background:var(--ok-soft);border-radius:12px;padding:12px 16px;font-size:clamp(15px,min(1.7vw,2.7vh),20px)}
+.lback .lret{font-size:clamp(28px,4vh,40px);color:var(--ok);font-weight:800;line-height:1}
+@media (max-width:800px){.loop{grid-template-columns:1fr}.larrow{height:44px}.larrow::before{left:50%;right:auto;top:4px;bottom:12px;border-top:0;border-left:3px solid var(--accent)}.larrow::after{left:calc(50% - 7px);right:auto;top:auto;bottom:0;border:8px solid transparent;border-top:12px solid var(--accent);border-bottom:0}.larrow span{position:static;margin:0 0 0 64px;text-align:left;align-self:center}}
+.hloop{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.hcol{background:var(--surface2);border-radius:12px;border-top:5px solid var(--accent);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.hcol:last-child{border-top-color:var(--ok)}
+.hcol>b{font-size:clamp(15px,min(1.7vw,2.7vh),20px)}
+.hh{display:flex;gap:8px;align-items:flex-start;font-size:clamp(13px,min(1.5vw,2.4vh),17px);line-height:1.3}
+.hh .hn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--surface);font-weight:800;display:flex;align-items:center;justify-content:center}
+.hh strong{display:block}
+.hh small{display:block;color:var(--muted);font-size:.9em}
+.hfinal{font-size:clamp(22px,min(3vw,4.6vh),36px);font-weight:800;color:var(--accent);margin:18px 0 4px;line-height:1.2}
+@media (max-width:800px){.hloop{grid-template-columns:1fr 1fr}}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -365,8 +387,22 @@ var SEGS=[
    function draw(){var a=Math.abs(left);$('#pt',root).textContent=(left<0?'-':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0');$('#pt',root).style.color=left<0?'var(--bad)':''}
    root.addEventListener('click',function(e){var p=e.target.getAttribute('data-p');if(p){left=+p;run=false;draw()}else if(e.target.getAttribute('data-act')==='ptgo'){run=!run}});draw();},prompt:{base:'pres',type:'scale',q:'Rate the plan you just heard. 1 = needs work, 5 = ready to implement.'}}
 ]},
-{id:'close',n:'Closing',min:6,tag:'Back to the three reviewer questions, one change per team, and the rapid habit round.',slides:[
- {t:'The 7 Habits wrap-up',k:'Closing',body:function(){return '<ol style="font-size:clamp(16px,2vw,22px);columns:2;column-gap:32px;padding-left:1.2em">'+HABITS.map(function(h,i){return '<li'+(i===3?' style="font-weight:800;color:var(--gold)"':'')+'>'+h+'</li>'}).join('')+'</ol><p style="font-size:clamp(20px,3vw,32px);font-weight:700">And that\'s the 7 Habits of Highly <span class="blank">Efficient</span> Leaders!</p><p class="muted">With thanks to Stephen Covey, whose book is <i>The 7 Habits of Highly Effective People</i>.</p>'}},
+{id:'close',n:'Closing',min:6,tag:'Close the loop: plan, budget, and risks check each other. One change per team, then the rapid habit round.',slides:[
+ {t:'Close the loop',k:'Closing · three questions every reviewer asks',body:function(){return '<div class="loop">'
+   +'<div class="lnode"><span class="ln">1</span><b>Plan Responsibly</b><i>Is it planned responsibly?</i><span>Objectives with a KPI and a target. A program where every item has an owner.</span></div>'
+   +'<div class="larrow"><span>every program item gets a budget line</span></div>'
+   +'<div class="lnode"><span class="ln">2</span><b>Budget Transparently</b><i>Is the money clear?</i><span>Every line checkable. Cost per participant shows where the money goes.</span></div>'
+   +'<div class="larrow"><span>the budget funds every control and mitigation</span></div>'
+   +'<div class="lnode"><span class="ln">3</span><b>Manage Risks Proactively</b><i>Are the risks handled before they happen?</i><span>Controls and mitigation, each with an owner and a date. Above 6, the Committee approves.</span></div>'
+   +'<div class="lback"><span class="lret">↺</span><div><b>After the activity, close the loop.</b> Write the Actual result next to each target, the Actual cost next to each budget line, and recheck each risk. What you learn goes into the next plan.</div></div>'
+   +'</div>'},prompt:{base:'loop',type:'choice',q:'Which question is your team\'s draft weakest on?',options:['Is it planned responsibly?','Is the money clear?','Are the risks handled before they happen?']}},
+ {t:'Seven habits, one loop',k:'Closing · the 7 Habits wrap-up',body:function(){
+   var cols=[['Plan Responsibly',[[2,'Begin with the End in Mind','the result before the activity'],[5,'Seek First to Understand','ask the youth what they need']]],
+     ['Budget Transparently',[[3,'Put First Things First','fund what matters most']]],
+     ['Manage Risks Proactively',[[1,'Be Proactive','fix it before it happens'],[4,'Think Win-Win','the Committee, venue, and youth all say yes']]],
+     ['Review and improve',[[6,'Synergize','another team catches what you missed'],[7,'Sharpen the Saw','review afterward, improve the next plan']]]];
+   return '<div class="hloop">'+cols.map(function(c){return '<div class="hcol"><b>'+c[0]+'</b>'+c[1].map(function(h){return '<div class="hh"><span class="hn">'+h[0]+'</span><div><strong>'+h[1]+'</strong><small>'+h[2]+'</small></div></div>'}).join('')+'</div>'}).join('')+'</div>'
+   +'<p class="hfinal">And that\'s the 7 Habits of Highly Effective Leaders, which you are.</p><p class="muted" style="margin:0">From Stephen R. Covey, <i>The 7 Habits of Highly Effective People</i>.</p>'}},
  {t:'One commitment',k:'Closing',body:function(){return '<p>What is the <b>first thing</b> you will do next week to move your idea toward impact?</p>'},prompt:{base:'commit',type:'text',q:'What is the first thing you will do next week to move your idea toward impact?'}},
  {t:'Salamat po!',k:'Thank you',body:function(){return '<p style="font-size:clamp(22px,4vw,40px);font-weight:700">Ideas become impact when we plan, budget, and prepare for what could go wrong.</p>'}}
 ]}];
