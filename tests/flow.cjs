@@ -74,14 +74,14 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phone.getByText('Sent ✓').waitFor();
     await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 }); ok('text answer reached host');
 
-    // Number question in Part 2
+    // Choice quiz in Part 1 (measurable objective): push, answer, reveal, reload
     await host.click('[data-act=home]');
-    await host.click('[data-act=open][data-s="2"]');
+    await host.click('[data-act=open][data-s="1"]');
     for (let i = 0; i < 3; i++) await host.click('[data-act=next]');
-    await host.getByRole('heading', { name: 'Your turn' }).waitFor();
+    await host.getByRole('heading', { name: 'Which one is measurable?' }).waitFor();
     await openPanel(); await host.click('[data-act=push]');
-    await phone.locator('input#din[type=number]').waitFor({ timeout: 8000 }); ok('number question pushed to phone');
-    await phone.fill('#din', '20');
+    await phone.locator('[data-act=pick][data-n="1"]').waitFor({ timeout: 8000 }); ok('choice question pushed to phone');
+    await phone.click('[data-act=pick][data-n="1"]');
     await phone.click('[data-act=send]');
     await phone.getByText('Sent ✓').waitFor();
     await host.locator('#plive', { hasText: '1 of 1 answered' }).waitFor({ timeout: 8000 }); ok('host sees 1 of 1 answered');

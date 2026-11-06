@@ -1,6 +1,6 @@
 # Question bank: facilitator answer key
 
-51 questions are built into the presenter screen. On any slide, open **Question bank and ask now**, pick the segment, and tap **Push**. A pushed question leaves the list (tap **Show pushed** to repeat one; **Clear all answers** resets the list). Answers are not shown on the projector; they appear on screen and on phones only when you tap **Show result on phones**. Habit checks follow the cues in the talk outline.
+52 questions are built into the presenter screen. On any slide, open **Question bank and ask now**, pick the segment, and tap **Push**. A pushed question leaves the list (tap **Show pushed** to repeat one; **Clear all answers** resets the list). Answers are not shown on the projector; they appear on screen and on phones only when you tap **Show result on phones**. Habit checks follow the cues in the talk outline.
 
 Keep this page for yourself.
 
@@ -28,14 +28,15 @@ Keep this page for yourself.
 
 ## Part 2 · Budget Transparently (16 min)
 
-- *Number* — Meals: 40 participants × ₱200. What is the total for meals? **Answer: 8,000**
-- *Number* — Total budget ₱18,000 for 40 participants. What is the cost per participant? **Answer: 450**
-- *Number* — Budget ₱12,000. Cost per participant ₱400. How many participants can we serve? **Answer: 30**
 - *Choice* — The total budget is… [A result of the itemized list / The starting point / Whatever is left in the fund / Decided by the venue] **Answer: A result of the itemized list**
 - *Choice* — The budget is cut. What do you cut LAST? [Safety items like first aid and headcounts / Snacks and extras / Giveaways / Decorations] **Answer: Safety items like first aid and headcounts**
 - *Choice* — Your risk action costs money. Where does that cost go? [Its own line in the budget / Nowhere, it is free / Taken from the meals / Paid by participants] **Answer: Its own line in the budget**
 - *Choice* — Habit check: You decided what gets funded first and what can wait. Which habit? [the 7 habits] **Answer: 3 Put First Things First**
 - *Choice* — "Food, PHP 5,000" is… [A lump sum, not a budget line / A proper budget line] **Answer: A lump sum, not a budget line**
+- *Choice* — What goes in the Remarks column? [The assumption behind the number, like "30 participants plus 5 staff" / Your name / The date of the activity / Nothing, leave it blank] **Answer: The assumption behind the number, like "30 participants plus 5 staff"**
+- *Choice* — Where should the approved budget go? [Where the community can see it / In the Treasurer's drawer only / Nowhere, it is private / Only on the Chairperson's phone] **Answer: Where the community can see it**
+- *Choice* — What do you attach for larger items? [Quotations / Nothing / A photo of the venue / The participant list] **Answer: Quotations**
+- *Text* — What does PHP 450 per participant buy in your plan, and is that where the money should go?
 - *Choice* — Who checks the budget sheet before it is submitted? [The SK Treasurer / The venue owner / The participants / No one] **Answer: The SK Treasurer**
 
 ## Part 3 · Manage Risks Proactively (40 min)
