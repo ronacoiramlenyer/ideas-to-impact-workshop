@@ -153,6 +153,18 @@ table.itm td,table.itm th{vertical-align:middle}
 }
 @media (prefers-reduced-motion:reduce){.stage.withp{transition:none}}
 .hint{background:var(--gold-soft);color:var(--gold);border-radius:8px;padding:6px 10px;font-weight:600;font-size:14px;margin:8px 0 2px}
+.defs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.def{background:var(--surface2);border-radius:12px;padding:10px 14px;border-top:4px solid var(--accent)}
+.def>b{display:block;font-size:clamp(18px,min(2.2vw,3.4vh),26px)}
+.def p{margin:2px 0 4px;line-height:1.4}
+.def .ex{display:block;color:var(--muted);font-size:clamp(14px,min(1.6vw,2.5vh),18px)}
+.def .ex::before{content:'Example: ';font-weight:700}
+@media (max-width:700px){.defs{grid-template-columns:1fr}}
+table.xm th,table.xm td{text-align:center;vertical-align:middle}
+table.xm tbody th{text-align:left;white-space:nowrap}
+table.xm td{font-weight:700;color:var(--b-ink)}
+table.xm td small{display:block;font-weight:600;opacity:.65;font-size:.8em}
+table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)} table.xm td.high{background:var(--b-high)} table.xm td.ext{background:var(--b-ext)}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -308,9 +320,20 @@ var SEGS=[
  {t:'"What if the budget is just this much?"',k:'Three steps',body:function(){return '<div class="grid2"><div class="box"><b>1. Start from the objective</b>What result must still happen? Protect that first.</div><div class="box"><b>2. Do the math backwards</b>Budget ÷ cost per participant. Cut the number of participants or the cost per head, not the purpose.</div><div class="box"><b>3. Cut safety last</b>First aid, headcounts, and safe venue stay in the budget. Trim extras first.</div></div>'}}
 ]},
 {id:'p3',n:'Part 3 · Manage Risks Proactively',min:40,tag:'Rate each risk by Occurrence × Impact, choose a treatment, then build your Risk Register.',slides:[
- {t:'What is a risk?',k:'Part 3 · Manage Risks Proactively',body:function(){return '<p>A risk is something that <b>might happen</b> and would hurt the activity.</p><div class="formula">Risk Rating = Occurrence × Impact</div><p><b>Rate twice.</b> First as the risk stands today, with your Existing Controls. Then the <b>Residual Risk Rating</b> you expect after your Additional Controls and Mitigation. It is a target: recheck it when those are done.</p>'}},
+ {t:'Four words first',k:'Part 3 · Manage Risks Proactively',body:function(){return '<div class="defs">'
+   +'<div class="def"><b>Risk</b><p>What could go wrong and hurt the activity.</p><span class="ex">A participant sprains an ankle.</span></div>'
+   +'<div class="def"><b>Control</b><p>Acts <b>before or during</b> the activity to stop the risk or catch it early. <b>Lowers Occurrence.</b> Existing ones are already in place; Additional ones are what you add.</p><span class="ex">Safety briefing, venue check, headcounts.</span></div>'
+   +'<div class="def"><b>Mitigation</b><p>Limits the damage <b>if the risk happens anyway</b>. <b>Lowers Impact.</b></p><span class="ex">First aid, nearest health facility, inform guardians.</span></div>'
+   +'<div class="def"><b>Risk Treatment</b><p>What you decide to do about the risk, based on its rating: <b>Accept</b> (only when already Low), <b>Reduce</b>, <b>Transfer / Share</b>, or <b>Avoid</b>.</p><span class="ex">Rated 6, Medium → Reduce.</span></div>'
+   +'</div>'}},
+ {t:'How big is the risk?',k:'Rate it',body:function(){return '<div class="formula">Risk Rating = Occurrence × Impact</div><p><b>Rate twice.</b> First as the risk stands today, with your Existing Controls. Then the <b>Residual Risk Rating</b> you expect after your Additional Controls and Mitigation. It is a target: recheck it when those are done.</p>'}},
  {t:'Occurrence: how likely?',k:'Scale 1 to 5',body:function(){return tbl(['Rating','Level','How likely is it?'],OCC.map(function(r){return ['<b>'+r[0]+'</b>',r[1],r[2]]}))}},
  {t:'Impact: how bad?',k:'Scale 1 to 5 · use the worst category that applies',body:function(){return tbl(['Rating','Health and Safety','Reputation','Operational'],IMP.map(function(r){return ['<b>'+r[0]+' '+r[1]+'</b>',r[2],r[3],r[4]]}))}},
+ {t:'Risk Exposure Matrix',k:'From the office Risk Legend · Impact × Occurrence',body:function(){
+   var occ=[[5,'Almost certain'],[4,'Likely'],[3,'Possible'],[2,'Unlikely'],[1,'Rare']],imp=[[1,'Negligible'],[2,'Minor'],[3,'Moderate'],[4,'Significant'],[5,'Severe']];
+   return '<div class="tw"><table class="t xm"><thead><tr><th>Occurrence ↓ · Impact →</th>'+imp.map(function(i){return '<th>'+i[0]+' '+i[1]+'</th>'}).join('')+'</tr></thead><tbody>'
+   +occ.map(function(o){return '<tr><th>'+o[0]+' '+o[1]+'</th>'+imp.map(function(i){var r=o[0]*i[0],b=band(r);return '<td class="'+b.c+'">'+b.n+'<small>'+r+'</small></td>'}).join('')+'</tr>'}).join('')
+   +'</tbody></table></div><p>Find the row for <b>Occurrence</b> and the column for <b>Impact</b>. The box gives the level. It matches <b>Occurrence × Impact</b>: Low 1–2, Medium 3–9, High 10–16, Extreme 20–25.</p>'}},
  {t:'Risk rating calculator',k:'Try it',body:function(){return '<div class="grid2"><div><span class="lab">Occurrence</span><div class="pick" id="pO"></div><span class="lab">Impact</span><div class="pick" id="pI"></div><div class="box" style="margin-top:14px"><b id="rLine"></b><div id="rBand"></div><div id="rTreat" class="muted"></div></div></div><div id="rMx"></div></div>'},init:function(root){
    var o=4,i=2;
    function pk(id,key){$(id,root).innerHTML=[1,2,3,4,5].map(function(n){return '<button data-k="'+key+'" data-n="'+n+'" class="'+((key==='o'?o:i)===n?'on':'')+'">'+n+'</button>'}).join('')}
