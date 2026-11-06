@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>From Ideas to Impact</title>
+<style>
+:root{
+  --bg:#F6F4EF; --surface:#FFFFFF; --surface2:#EEEAE0; --ink:#1B2430; --muted:#586272; --line:#D9D3C5;
+  --accent:#1F4E8C; --accent-ink:#FFFFFF; --accent-soft:#E2ECF8; --gold:#8A5A00; --gold-soft:#FBEFD2;
+  --ok:#23704A; --ok-soft:#DDF1E4; --bad:#B03A3A;
+  --b-low:#BFE3C8; --b-med:#F7E6A1; --b-high:#F6C28E; --b-ext:#EE9A9A; --b-ink:#1B2430;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10161E; --surface:#192230; --surface2:#222D3D; --ink:#ECEFF4; --muted:#9DA9BA; --line:#2E3A4D;
+    --accent:#7FB2FF; --accent-ink:#0B1626; --accent-soft:#1D2D45; --gold:#F2B84B; --gold-soft:#3A2E12;
+    --ok:#6FD39B; --ok-soft:#183626; --bad:#FF8D8D;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10161E; --surface:#192230; --surface2:#222D3D; --ink:#ECEFF4; --muted:#9DA9BA; --line:#2E3A4D;
+  --accent:#7FB2FF; --accent-ink:#0B1626; --accent-soft:#1D2D45; --gold:#F2B84B; --gold-soft:#3A2E12;
+  --ok:#6FD39B; --ok-soft:#183626; --bad:#FF8D8D;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+#app{min-height:100vh;padding:16px max(16px,env(safe-area-inset-right)) 32px max(16px,env(safe-area-inset-left))}
+h1,h2,h3{line-height:1.15;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600;min-height:40px}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;min-height:32px;font-size:14px}
+.btn[disabled]{opacity:.5;cursor:default}
+.chip{display:inline-block;border-radius:99px;padding:2px 10px;font-size:13px;font-weight:600;background:var(--accent-soft);color:var(--accent)}
+.chip.gold{background:var(--gold-soft);color:var(--gold)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.muted{color:var(--muted)}
+input[type=text],input[type=number],textarea,select{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:42px}
+textarea{resize:vertical;min-height:96px}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+
+/* home */
+.home{max-width:1100px;margin:0 auto}
+.hero{padding:18px 0 8px}
+.hero .k{font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--gold)}
+.hero h1{font-size:clamp(30px,5vw,52px);margin:6px 0 8px}
+.hero p{margin:0;color:var(--muted);max-width:60ch;font-size:clamp(16px,2vw,19px)}
+.strip{display:flex;gap:3px;margin:20px 0 6px;height:12px}
+.strip i{display:block;border-radius:4px;background:var(--accent);opacity:.85}
+.strip i:nth-child(even){opacity:.55}
+.segs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:16px}
+.seg{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:6px}
+.seg:hover{border-color:var(--accent)}
+.seg .n{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase}
+.seg h2{font-size:22px}
+.seg .m{margin-top:auto;padding-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tools{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.join{margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+/* slide view */
+.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.top .ttl{font-weight:700}
+.top .sp{flex:1}
+.tmr{font-variant-numeric:tabular-nums;font-weight:700;font-size:20px;min-width:68px;text-align:center}
+.tmr.over{color:var(--bad)}
+.stage{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+@media (min-width:1000px){.stage.withp{grid-template-columns:minmax(0,1fr) clamp(300px,25vw,380px)}}
+/* Projector: the whole presenter view fits the screen; Back/Next never scroll away. */
+@media (min-width:1000px) and (min-height:480px){
+  #app.deck{height:100vh;height:100dvh;display:flex;flex-direction:column;padding-top:12px;padding-bottom:12px}
+  #app.deck .top{margin-bottom:10px}
+  #app.deck .stage{flex:1;min-height:0}
+  #app.deck .slide{min-height:0;overflow:auto}
+  #app.deck #panel{min-height:0;overflow:auto}
+  #app.deck .bottom{margin-top:10px}
+  #app.deck .wall{max-height:none}
+}
+.slide{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,min(3vw,4.5vh),40px);min-height:55vh}
+.slide .kick{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.slide h2{font-size:clamp(24px,min(4vw,6.2vh),44px);margin:4px 0 min(16px,2vh)}
+.slide p,.slide li{font-size:clamp(15px,min(1.9vw,3.1vh),22px)}
+.slide ul{padding-left:1.2em;margin:.4em 0}
+.slide li{margin:.35em 0}
+.bottom{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:14px}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.box{background:var(--surface2);border-radius:12px;padding:14px 16px}
+.box b{display:block;margin-bottom:2px}
+.formula{background:var(--accent-soft);border-left:5px solid var(--accent);border-radius:10px;padding:14px 18px;font-size:clamp(18px,2.3vw,26px);font-weight:600}
+.blank{color:var(--gold);background:var(--gold-soft);border-radius:6px;padding:0 6px}
+.weak{border-left:5px solid var(--bad)} .strong{border-left:5px solid var(--ok)}
+table.t{border-collapse:collapse;width:100%;font-size:clamp(13px,min(1.6vw,2.5vh),18px)}
+table.t th,table.t td{border:1px solid var(--line);padding:min(8px,1vh) 10px;text-align:left;vertical-align:top;line-height:1.35}
+table.t th{background:var(--surface2)}
+table.t td.num,table.t th.num{text-align:right;font-variant-numeric:tabular-nums}
+table.t input{min-height:34px;padding:4px 8px}
+table.itm td,table.itm th{vertical-align:middle}
+.itsum{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;margin-top:12px;align-items:end}
+.itsum .box .big{display:block}
+.tw{overflow-x:auto}
+.big{font-size:clamp(34px,6vw,64px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.form3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.form3 label{font-size:14px;font-weight:600;display:block;margin-bottom:4px}
+.pick{display:flex;gap:6px;flex-wrap:wrap}
+.pick button{min-width:46px;min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700;padding:6px 12px}
+.pick button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pick.col{flex-direction:column}
+.pick.col button{text-align:left;font-weight:500;padding:12px 14px}
+.mx{display:grid;grid-template-columns:34px repeat(5,1fr);gap:4px;max-width:420px}
+.mx div{display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:8px;font-weight:700;color:var(--b-ink)}
+.mx .h{background:transparent;color:var(--muted);font-size:13px}
+.mx .low{background:var(--b-low)} .mx .med{background:var(--b-med)} .mx .high{background:var(--b-high)} .mx .ext{background:var(--b-ext)}
+.mx .sel{outline:3px solid var(--ink);outline-offset:1px}
+.bd{display:inline-block;border-radius:8px;padding:2px 10px;font-weight:700;color:var(--b-ink)}
+.bd.low{background:var(--b-low)} .bd.med{background:var(--b-med)} .bd.high{background:var(--b-high)} .bd.ext{background:var(--b-ext)}
+
+/* qr */
+.qr{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+.qr svg{width:var(--qs);height:var(--qs);display:block;border-radius:8px}
+.qrl{font-weight:700;font-size:14px;word-break:break-all;text-align:center}
+.opening{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:start}
+.joinbox{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;background:var(--surface2);border-radius:var(--r);padding:16px;max-width:300px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:min(16px,2vh)}
+@media (max-width:700px){.opening{grid-template-columns:1fr}.joinbox{max-width:none}}
+.join .jt{display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px}
+
+/* panel */
+#panel{display:flex;flex-direction:column;gap:12px}
+.ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pq{font-weight:700;font-size:17px;margin:6px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.wall{display:grid;gap:8px;max-height:46vh;overflow:auto}
+.note{background:var(--surface2);border-radius:10px;padding:10px 12px}
+.note small{display:block;color:var(--muted);margin-top:2px}
+.bar{display:grid;grid-template-columns:1fr auto;gap:2px 8px;margin:8px 0;font-size:15px}
+.bar .tr{grid-column:1/-1;height:12px;border-radius:6px;background:var(--surface2);overflow:hidden}
+.bar .tr i{display:block;height:100%;background:var(--accent)}
+.bar.right .tr i{background:var(--ok)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:9;max-width:90vw}
+
+#net{position:fixed;left:0;right:0;top:0;z-index:10;background:var(--gold-soft);color:var(--gold);border-bottom:1px solid var(--gold);padding:8px 16px;font-weight:600;text-align:center;font-size:15px}
+.sent.wait{background:var(--gold-soft);color:var(--gold)}
+/* phone */
+.phone{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.phone .brand{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.phone h1{font-size:26px}
+.phone .q{font-size:20px;font-weight:700;margin:4px 0 12px}
+.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.teams button{min-height:48px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700}
+.teams button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.lab{font-size:14px;font-weight:600;margin:12px 0 6px;display:block}
+.sent{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:10px 12px;font-weight:600}
+.res{background:var(--surface2);border-radius:10px;padding:10px 12px;margin-top:10px}
+</style></head><body>
+<div id="app"><p class="muted">Loading…</p></div>
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var peso=function(n){return '₱'+Number(n||0).toLocaleString('en-PH',{maximumFractionDigits:2})};
+var num=function(v){var n=parseFloat(v);return isFinite(n)?n:0};
+
+/* ---------- QR code (made in the browser; no outside service) ----------
+   Byte mode, error correction level M, versions 1 to 10 (up to 213 characters). */
+var qrSVG=(function(){
+  var ECC=[0,10,16,26,18,24,16,18,22,22,26],BLK=[0,1,1,1,2,2,4,4,4,5,5];
+  function mul(x,y){var z=0;for(var i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x}return z}
+  function rawMods(v){var r=(16*v+128)*v+64;if(v>=2){var n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36}return r}
+  function dataCw(v){return Math.floor(rawMods(v)/8)-ECC[v]*BLK[v]}
+  function divisor(d){var r=[];for(var i=0;i<d-1;i++)r.push(0);r.push(1);var root=1;for(i=0;i<d;i++){for(var j=0;j<r.length;j++){r[j]=mul(r[j],root);if(j+1<r.length)r[j]^=r[j+1]}root=mul(root,2)}return r}
+  function remainder(data,div){var r=div.map(function(){return 0});data.forEach(function(b){var f=b^r.shift();r.push(0);div.forEach(function(c,i){r[i]^=mul(c,f)})});return r}
+  return function(text){
+    var bytes=Array.from(new TextEncoder().encode(text)),ver=0;
+    for(var v=1;v<=10;v++){if(4+(v<10?8:16)+bytes.length*8<=dataCw(v)*8){ver=v;break}}
+    if(!ver)return '';
+    var bits=[];function put(val,n){for(var i=n-1;i>=0;i--)bits.push((val>>>i)&1)}
+    put(4,4);put(bytes.length,ver<10?8:16);bytes.forEach(function(b){put(b,8)});
+    var cap=dataCw(ver)*8;put(0,Math.min(4,cap-bits.length));put(0,(8-bits.length%8)%8);
+    for(var pad=0xEC;bits.length<cap;pad^=0xEC^0x11)put(pad,8);
+    var data=[];for(var i=0;i<bits.length;i+=8){var b=0;for(var j=0;j<8;j++)b=(b<<1)|bits[i+j];data.push(b)}
+    var nb=BLK[ver],el=ECC[ver],raw=Math.floor(rawMods(ver)/8),nShort=nb-raw%nb,sLen=Math.floor(raw/nb),div=divisor(el),blocks=[],k=0;
+    for(i=0;i<nb;i++){var d=data.slice(k,k+sLen-el+(i<nShort?0:1));k+=d.length;var e=remainder(d,div);if(i<nShort)d.push(0);blocks.push(d.concat(e))}
+    var cw=[];for(i=0;i<blocks[0].length;i++)for(j=0;j<nb;j++)if(i!==sLen-el||j>=nShort)cw.push(blocks[j][i]);
+    var S=ver*4+17,M=[],F=[];for(i=0;i<S;i++){M.push(new Array(S).fill(false));F.push(new Array(S).fill(false))}
+    function fn(x,y,on){M[y][x]=on;F[y][x]=true}
+    for(i=0;i<S;i++){fn(6,i,i%2===0);fn(i,6,i%2===0)}
+    [[3,3],[S-4,3],[3,S-4]].forEach(function(c){for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){var x=c[0]+dx,y=c[1]+dy,dd=Math.max(Math.abs(dx),Math.abs(dy));if(x>=0&&x<S&&y>=0&&y<S)fn(x,y,dd!==2&&dd!==4)}});
+    if(ver>1){var na=Math.floor(ver/7)+2,step=Math.ceil((ver*4+4)/(na*2-2))*2,al=[6];for(var p=S-7;al.length<na;p-=step)al.splice(1,0,p);
+      al.forEach(function(ax,ai){al.forEach(function(ay,aj){if((ai===0&&aj===0)||(ai===0&&aj===na-1)||(ai===na-1&&aj===0))return;for(var dy=-2;dy<=2;dy++)for(var dx=-2;dx<=2;dx++)fn(ax+dx,ay+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)})})}
+    function drawFormat(mask){var dd=mask,r=dd;for(var i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);var b=((dd<<10)|r)^0x5412,g=function(i){return ((b>>>i)&1)===1};
+      for(i=0;i<=5;i++)fn(8,i,g(i));fn(8,7,g(6));fn(8,8,g(7));fn(7,8,g(8));for(i=9;i<15;i++)fn(14-i,8,g(i));
+      for(i=0;i<8;i++)fn(S-1-i,8,g(i));for(i=8;i<15;i++)fn(8,S-15+i,g(i));fn(8,S-8,true)}
+    drawFormat(0);
+    if(ver>=7){var r=ver;for(i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1F25);var vb=(ver<<12)|r;for(i=0;i<18;i++){var on=((vb>>>i)&1)===1,a=S-11+i%3,c=Math.floor(i/3);fn(a,c,on);fn(c,a,on)}}
+    var n=0;for(var right=S-1;right>=1;right-=2){if(right===6)right=5;for(var vert=0;vert<S;vert++)for(j=0;j<2;j++){var x=right-j,up=((right+1)&2)===0,y=up?S-1-vert:vert;if(!F[y][x]&&n<cw.length*8){M[y][x]=((cw[n>>>3]>>>(7-(n&7)))&1)===1;n++}}}
+    var MASK=[function(x,y){return (x+y)%2===0},function(x,y){return y%2===0},function(x){return x%3===0},function(x,y){return (x+y)%3===0},function(x,y){return (Math.floor(x/3)+Math.floor(y/2))%2===0},function(x,y){return x*y%2+x*y%3===0},function(x,y){return (x*y%2+x*y%3)%2===0},function(x,y){return ((x+y)%2+x*y%3)%2===0}];
+    function applyMask(m){for(var y=0;y<S;y++)for(var x=0;x<S;x++)if(!F[y][x]&&MASK[m](x,y))M[y][x]=!M[y][x]}
+    function penalty(){var s=0,dark=0,lines=[];for(var y=0;y<S;y++){var row='',col='';for(var x=0;x<S;x++){row+=M[y][x]?1:0;col+=M[x][y]?1:0;if(M[y][x])dark++;
+        if(x<S-1&&y<S-1&&M[y][x]===M[y][x+1]&&M[y][x]===M[y+1][x]&&M[y][x]===M[y+1][x+1])s+=3}lines.push(row,col)}
+      lines.forEach(function(l){(l.match(/0{5,}|1{5,}/g)||[]).forEach(function(run){s+=run.length-2});var q='0000'+l+'0000';(q.match(/(?=10111010000|00001011101)/g)||[]).forEach(function(){s+=40})});
+      return s+Math.floor(Math.abs(dark*20-S*S*10)/(S*S))*10}
+    var best=0,bestP=1/0;for(var m=0;m<8;m++){applyMask(m);drawFormat(m);var pp=penalty();if(pp<bestP){bestP=pp;best=m}applyMask(m)}
+    applyMask(best);drawFormat(best);
+    var Q=4,W=S+Q*2,path='';for(y=0;y<S;y++)for(x=0;x<S;x++)if(M[y][x])path+='M'+(x+Q)+' '+(y+Q)+'h1v1h-1z';
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+W+'" shape-rendering="crispEdges" role="img" aria-label="QR code for '+text.replace(/[&<>"]/g,'')+'"><rect width="'+W+'" height="'+W+'" fill="#fff"/><path d="'+path+'" fill="#000"/></svg>'};
+})();
+var JOIN_URL=location.origin+'/';
+var JOIN_LABEL=location.host;
+function qrBlock(id,size){return '<div class="qr" id="'+id+'" style="--qs:'+size+'">'+qrSVG(JOIN_URL)+'<div class="qrl">'+esc(JOIN_LABEL)+'</div></div>'}
+
+/* ---------- risk model ---------- */
+var OCC=[[5,'Almost certain','More than 75%; more than 10 times a year'],[4,'Likely','More than 50% to 75%; 6 to 10 times a year'],[3,'Possible','More than 25% to 50%; 3 to 5 times a year'],[2,'Unlikely','0 times but there is an existing issue; up to 25%; 1 to 2 times a year'],[1,'Rare','Has not happened and no existing issue']];
+var IMP=[[5,'Severe','Fatality(ies), or permanent disability or ill-health','Sustained media attention, including international','Activity delayed or stopped for more than 1 month'],
+[4,'Significant','Several participants hospitalized, or a long-term illness or serious injuries','Nationwide media attention','Activity delayed or stopped for more than 2 weeks to 1 month'],
+[3,'Moderate','Hospitalization of a participant; no long-term effects','Regional media attention; major complaints from external stakeholders','Activity delayed or stopped for more than 1 week to 2 weeks'],
+[2,'Minor','Medical attention off-site (clinic or health center) but no hospitalization','Internal or minor complaints; external reputation not affected','Activity delayed or stopped for more than 1 day to 1 week'],
+[1,'Negligible','Treated on site; no hospital or clinic visit','No effect on external reputation','Activity delayed or stopped for 1 day']];
+function band(r){return r<=2?{n:'Low',t:'Accept',c:'low'}:r<=9?{n:'Medium',t:'Reduce',c:'med'}:r<=16?{n:'High',t:'Reduce, Transfer / Share, or Avoid',c:'high'}:{n:'Extreme',t:'Avoid',c:'ext'}}
+function badge(r){r=Number(r)||0;var b=band(r);return '<span class="bd '+b.c+'">'+r+' · '+b.n+'</span>'}
+function matrix(o,i){
+  var h='<div class="mx"><div class="h"></div>';
+  [1,2,3,4,5].forEach(function(x){h+='<div class="h">Imp '+x+'</div>'});
+  [5,4,3,2,1].forEach(function(oc){h+='<div class="h">Occ '+oc+'</div>';[1,2,3,4,5].forEach(function(im){h+='<div class="'+band(oc*im).c+(oc===o&&im===i?' sel':'')+'">'+oc*im+'</div>'})});
+  return h+'</div>';
+}
+
+/* ---------- content ---------- */
+function tbl(head,rows){return '<div class="tw"><table class="t"><thead><tr>'+head.map(function(x){return '<th>'+x+'</th>'}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>'}
+var HABITS=['Be Proactive','Begin with the End in Mind','Put First Things First','Think Win-Win','Seek First to Understand','Synergize','Sharpen the Saw'];
+
+var SEGS=[
+{id:'open',n:'Opening',min:14,tag:'Warm up and frame the day: an icebreaker, the 4 Ws and H, and the 7 Habits primer.',slides:[
+ {t:'From Ideas to Impact',k:'SK Leadership Session · South Caloocan',body:function(){return '<div class="opening"><div><p style="font-size:clamp(20px,2.6vw,32px);font-weight:600;max-width:24ch;margin-top:0">Planning Responsibly, Budgeting Transparently, and Managing Risks Proactively</p><p class="muted">Two hours. Three skills. One plan your team can actually run.</p><div class="grid3"><div class="box"><b>Part 1</b>Plan Responsibly</div><div class="box"><b>Part 2</b>Budget Transparently</div><div class="box"><b>Part 3</b>Manage Risks Proactively</div></div></div><div class="joinbox"><b>Join on your phone</b>'+qrBlock('qrSlide','min(30vh,240px)')+'<span class="muted">No account needed. Type your first name, tap your team.</span></div></div>'}},
+ {t:'The event that went wrong',k:'Icebreaker · 3 min',body:function(){return '<p>Think of an event you joined or organized that went wrong.</p><p><b>On your phone, in one line: what went wrong?</b></p><p class="muted">No names needed. We read them together.</p>'},prompt:{base:'ice1',type:'text',q:'Think of an event that went wrong. In one line: what went wrong?'}},
+ {t:'What was missing?',k:'Icebreaker · vote',body:function(){return '<p>Looking at that wall, almost every story comes down to one of three things:</p><div class="grid2"><div class="box"><b>The plan</b>No clear objective</div><div class="box"><b>The money</b>No budget anyone could follow</div><div class="box"><b>The risks</b>No one saw it coming</div></div><p>That is today.</p>'},prompt:{base:'ice2',type:'choice',q:'Looking back at that event, what was most missing?',options:['A clear objective','A budget we could follow','A plan for risks','Something else']}},
+ {t:'Four Ws and an H',k:'Every activity answers these',body:function(){return '<div class="grid2"><div class="box"><b>What</b>The activity</div><div class="box"><b>Why</b>The objective: the result we want</div><div class="box"><b>Who</b>Participants, beneficiaries, our team</div><div class="box"><b>When and Where</b>Schedule and venue</div><div class="box"><b>How</b>Program, budget, and risks</div></div><p>Today we work on <b>Why</b> and <b>How</b>, because that is where good ideas become real impact.</p>'}},
+ {t:'The 7 Habits, as a memory device',k:'Primer · 4 min',body:function(){return '<ol style="font-size:clamp(16px,2vw,22px);columns:2;column-gap:32px;padding-left:1.2em">'+HABITS.map(function(h,i){return '<li'+(i===3?' style="font-weight:800;color:var(--gold)"':'')+'>'+h+'</li>'}).join('')+'</ol><p><b>Habit 4, Win-Win, is the middle.</b> Count from it and the rest follow.</p><div class="grid2"><div class="box"><b>Part 1 · Plan</b>Begin with the End in Mind</div><div class="box"><b>Part 2 · Budget</b>Put First Things First</div><div class="box"><b>Part 3 · Risks</b>Be Proactive</div></div>'}}
+]},
+{id:'p1',n:'Part 1 · Plan Responsibly',min:24,tag:'Start from the result you want. Write an objective you can measure, and say how you will check it.',slides:[
+ {t:'Start with the result, not the activity',k:'Part 1 · Plan Responsibly',body:function(){return '<div class="grid2"><div class="box weak"><b>Weak</b>"Hold a basketball league."</div><div class="box strong"><b>Strong</b>"Keep 60 youth active and off the streets for one summer, shown by weekly attendance."</div></div><p>An objective says what changes, for whom, and how we will know.</p><div class="formula">To <span class="blank">do what</span> for <span class="blank">whom</span> so that <span class="blank">result</span>, measured by <span class="blank">KPI</span>, target <span class="blank">number</span>, by <span class="blank">date</span>.</div>'}},
+ {id:'objb',t:'Build an objective',k:'Try it together',body:function(){return '<div class="form3"><div><label>To (do what)</label><input type="text" data-f="a" placeholder="e.g. train youth in basic first aid"></div><div><label>for (whom)</label><input type="text" data-f="b" placeholder="e.g. 40 youth of our barangay"></div><div><label>so that (result)</label><input type="text" data-f="c" placeholder="e.g. they can respond to emergencies"></div><div><label>measured by (KPI)</label><input type="text" data-f="d" placeholder="e.g. passing a skills check"></div><div><label>target (number)</label><input type="text" data-f="e" placeholder="e.g. 32 of 40"></div><div><label>by (date)</label><input type="text" data-f="f" placeholder="e.g. March 30"></div></div><div class="formula" id="objOut" style="margin-top:16px"></div><div class="row"><button class="btn sm" data-act="objex">Fill an example</button><button class="btn sm ghost" data-act="objclr">Clear</button></div>'},init:function(root){
+   var F={a:'',b:'',c:'',d:'',e:'',f:''};
+   function w(k,l){return F[k]?'<b>'+esc(F[k])+'</b>':'<span class="blank">'+l+'</span>'}
+   function draw(){$('#objOut',root).innerHTML='To '+w('a','do what')+' for '+w('b','whom')+' so that '+w('c','result')+', measured by '+w('d','KPI')+', target '+w('e','number')+', by '+w('f','date')+'.'}
+   root.addEventListener('input',function(e){var f=e.target.getAttribute('data-f');if(f){F[f]=e.target.value;draw()}});
+   root.addEventListener('click',function(e){var a=e.target.getAttribute('data-act');
+     var ex={a:'train youth in basic first aid',b:'40 youth of our barangay',c:'they can respond to emergencies',d:'passing a skills check',e:'32 of 40',f:'March 30'};
+     if(a==='objex'){F=Object.assign({},ex)}else if(a==='objclr'){F={a:'',b:'',c:'',d:'',e:'',f:''}}else return;
+     root.querySelectorAll('[data-f]').forEach(function(i){i.value=F[i.getAttribute('data-f')]});draw()});
+   draw();}},
+ {t:'Objective, then evaluation',k:'How will we know?',body:function(){return '<p>Every objective needs <b>evidence</b>, <b>who</b> collects it, and <b>when</b>. Fill the Actual column after the activity.</p>'+tbl(['Objective','Evidence','Who collects','When','Actual (after)'],[['Train 40 youth in basic first aid, 32 pass the skills check by March 30','Skills check sheets','Kagawad on health','At the end of the training day','<span class="muted">filled in after</span>']])+'<p class="muted">No evidence, no evaluation. If you cannot say how you will check it, rewrite the objective.</p>'}},
+ {t:'Which one is measurable?',k:'Quick check',body:function(){return '<p>Pick the objective you could actually evaluate.</p>'},prompt:{base:'quiz1',type:'choice',q:'Which objective is measurable?',options:['To help youth become more active in the barangay.','To train 40 youth in basic first aid so that they can respond to emergencies, measured by passing a skills check, target 32 of 40, by March 30.','To hold a successful first aid seminar.','To raise awareness about first aid.'],correct:1}},
+ {t:'Your team\'s objective',k:'Team exercise',body:function(){return '<p>In your team, write <b>one objective</b> for your activity using the formula.</p><div class="formula">To <span class="blank">do what</span> for <span class="blank">whom</span> so that <span class="blank">result</span>, measured by <span class="blank">KPI</span>, target <span class="blank">number</span>, by <span class="blank">date</span>.</div><p>One person types it on their phone. We read a few aloud and tighten them together.</p>'},prompt:{base:'obj',type:'text',q:'Type your team\'s objective in one sentence, using the formula.'}}
+]},
+{id:'p2',n:'Part 2 · Budget Transparently',min:16,tag:'Itemize, get the cost per participant, and work backwards when the money is fixed.',slides:[
+ {t:'Itemize everything',k:'Part 2 · Budget Transparently',body:function(){return '<ul><li>List every item with <b>Qty, Unit, Unit Cost</b>. Then Total.</li><li>The total is a <b>result</b> of the list, not a starting point.</li><li>Keep an <b>Actual (PHP)</b> column and fill it in after the activity.</li><li>Any risk action that costs money needs <b>its own budget line</b>.</li></ul>'}},
+ {id:'itemizer',t:'Itemize, total, cost per participant',k:'Try it',body:function(){return '<div class="tw"><table class="t itm" id="itm"><colgroup><col><col style="width:12%"><col style="width:13%"><col style="width:17%"><col style="width:17%"></colgroup><thead><tr><th>Item</th><th class="num">Qty</th><th>Unit</th><th class="num">Unit cost (PHP)</th><th class="num">Total</th></tr></thead><tbody></tbody><tfoot><tr><th colspan="4" class="num"><button class="btn sm" data-act="addrow" style="float:left">Add a row</button>Total</th><th class="num" id="itTot"></th></tr></tfoot></table></div><div class="itsum"><div><label class="lab">Participants</label><input type="number" id="itPax" value="40" min="1"></div><div class="box"><b>Cost per participant</b><span class="big" id="itPer"></span><span class="muted" id="itEq"></span></div></div>'},init:function(root){
+   /* Item, Qty, Unit, Unit cost. 8,000 + 4,000 + 3,000 + 3,000 = 18,000; 18,000 / 40 = 450. */
+   var rows=[['Meals',40,'pax',200],['Materials',40,'sets',100],['Venue and sound',1,'lot',3000],['First aid kit and tarpaulin',1,'lot',3000]];
+   function cell(i,f,type,v){return '<input type="'+type+'" data-i="'+i+'" data-f="'+f+'" value="'+esc(v)+'">'}
+   function drawRows(){$('#itm tbody',root).innerHTML=rows.map(function(r,i){return '<tr><td>'+cell(i,0,'text',r[0])+'</td><td class="num">'+cell(i,1,'number',r[1])+'</td><td>'+cell(i,2,'text',r[2])+'</td><td class="num">'+cell(i,3,'number',r[3])+'</td><td class="num" id="rt'+i+'"></td></tr>'}).join('');calc()}
+   function calc(){var t=0;rows.forEach(function(r,i){var x=num(r[1])*num(r[3]);t+=x;var c=$('#rt'+i,root);if(c)c.textContent=peso(x)});
+     $('#itTot',root).textContent=peso(t);var p=num($('#itPax',root).value);$('#itPer',root).textContent=p>0?peso(t/p):'—';$('#itEq',root).textContent=p>0?peso(t)+' ÷ '+p+' participants':''}
+   root.addEventListener('input',function(e){var t=e.target;if(t.id==='itPax'){calc();return}var i=t.getAttribute('data-i');if(i!==null){rows[+i][+t.getAttribute('data-f')]=t.value;calc()}});
+   root.addEventListener('click',function(e){if(e.target.getAttribute('data-act')==='addrow'){rows.push(['',1,'',0]);drawRows();var ins=root.querySelectorAll('#itm tbody tr:last-child input');if(ins[0])ins[0].focus()}});
+   drawRows();}},
+ {t:'Budget backwards',k:'When the money is fixed',body:function(){return '<p>Sometimes the budget comes first. Divide it by the cost per participant.</p><div class="grid2" style="align-items:end"><div><label class="lab">Budget (PHP)</label><input type="number" id="bwB" value="9000"></div><div><label class="lab">Cost per participant (PHP)</label><input type="number" id="bwC" value="450"></div></div><div class="box" style="margin-top:12px"><b>We can serve</b><span class="big" id="bwR"></span><div class="muted" id="bwN"></div></div>'},init:function(root){
+   function calc(){var b=num($('#bwB',root).value),c=num($('#bwC',root).value);if(c>0){var n=Math.floor(b/c);$('#bwR',root).textContent=n+' participants';$('#bwN',root).textContent=peso(b)+' ÷ '+peso(c)+' = '+(b/c).toFixed(2)+(b-n*c>0?'. '+peso(b-n*c)+' left over.':'.')}else{$('#bwR',root).textContent='—';$('#bwN',root).textContent=''}}
+   root.addEventListener('input',calc);calc();}},
+ {t:'Your turn',k:'Quick check',body:function(){return '<p style="font-size:clamp(20px,3vw,30px)">Budget: <b>₱9,000</b>. Cost per participant: <b>₱450</b>.</p><p>How many participants can we serve? Answer on your phone.</p>'},prompt:{base:'bw',type:'number',q:'Budget ₱9,000. Cost per participant ₱450. How many participants can we serve?',correct:20}},
+ {t:'"What if the budget is just this much?"',k:'Three steps',body:function(){return '<div class="grid2"><div class="box"><b>1. Start from the objective</b>What result must still happen? Protect that first.</div><div class="box"><b>2. Do the math backwards</b>Budget ÷ cost per participant. Cut the number of participants or the cost per head, not the purpose.</div><div class="box"><b>3. Cut safety last</b>First aid, headcounts, and safe venue stay in the budget. Trim extras first.</div></div>'}}
+]},
+{id:'p3',n:'Part 3 · Manage Risks Proactively',min:40,tag:'Rate each risk by Occurrence × Impact, choose a treatment, then build your Risk Register.',slides:[
+ {t:'What is a risk?',k:'Part 3 · Manage Risks Proactively',body:function(){return '<p>A risk is something that <b>might happen</b> and would hurt the activity.</p><div class="formula">Risk Rating = Occurrence × Impact</div><p><b>Rate twice.</b> First as the risk stands today, with your Existing Controls. Then the <b>Residual Risk Rating</b> you expect after your Additional Controls and Mitigation. It is a target: recheck it when those are done.</p>'}},
+ {t:'Occurrence: how likely?',k:'Scale 1 to 5',body:function(){return tbl(['Rating','Level','How likely is it?'],OCC.map(function(r){return ['<b>'+r[0]+'</b>',r[1],r[2]]}))}},
+ {t:'Impact: how bad?',k:'Scale 1 to 5 · use the worst category that applies',body:function(){return tbl(['Rating','Health and Safety','Reputation','Operational'],IMP.map(function(r){return ['<b>'+r[0]+' '+r[1]+'</b>',r[2],r[3],r[4]]}))}},
+ {t:'Risk rating calculator',k:'Try it',body:function(){return '<div class="grid2"><div><span class="lab">Occurrence</span><div class="pick" id="pO"></div><span class="lab">Impact</span><div class="pick" id="pI"></div><div class="box" style="margin-top:14px"><b id="rLine"></b><div id="rBand"></div><div id="rTreat" class="muted"></div></div></div><div id="rMx"></div></div>'},init:function(root){
+   var o=4,i=2;
+   function pk(id,key){$(id,root).innerHTML=[1,2,3,4,5].map(function(n){return '<button data-k="'+key+'" data-n="'+n+'" class="'+((key==='o'?o:i)===n?'on':'')+'">'+n+'</button>'}).join('')}
+   function draw(){pk('#pO','o');pk('#pI','i');var r=o*i,b=band(r);$('#rLine',root).textContent=o+' × '+i+' = '+r;$('#rBand',root).innerHTML=badge(r);$('#rTreat',root).textContent='Treatment: '+b.t+(r>=20?'. The Committee decides.':r>=10?'. The Committee must approve.':'');$('#rMx',root).innerHTML=matrix(o,i)}
+   root.addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(!b)return;if(b.getAttribute('data-k')==='o')o=+b.getAttribute('data-n');else i=+b.getAttribute('data-n');draw()});
+   draw();}},
+ {t:'Worked example: rain',k:'Rate twice',body:function(){return tbl(['Step','What we write'],[['Risk','Rain on the day of an outdoor activity'],['Today (with Existing Controls)','Occurrence 4 (Likely) × Impact 2 (Minor) = 8 → '+badge(8)+' → Reduce'],['Additional Controls (lowers Occurrence)','Reserve a covered venue as a backup; check the forecast two days before'],['Mitigation (lowers Impact)','Move the program indoors; call guardians if we must stop'],['Residual Risk Rating (target)','Occurrence 2 × Impact 1 = 2 → '+badge(2)]])+'<p class="muted">Costs money? Add the covered venue to the budget. This is how Part 2 loops back.</p>'}},
+ {t:'What do we do with the rating?',k:'Treatment',body:function(){return tbl(['Rating','Level','Treatment','What you do'],[['1–2',badge(2).replace('2 · ',''),'<b>ACCEPT</b>','Plan nothing extra. Name one person to watch it and rate it again if things change.'],['3–9',badge(8).replace('8 · ',''),'<b>REDUCE</b>','Add controls and mitigation. Share or transfer part of it if a venue or partner can carry it.'],['10–16',badge(12).replace('12 · ',''),'<b>REDUCE, TRANSFER / SHARE, or AVOID</b>','Reduce first; transfer or share in writing; avoid if it stays High. The Committee must approve before you proceed.'],['20–25',badge(20).replace('20 · ',''),'<b>AVOID</b>','Drop or redesign that part. Do not proceed without the Committee\'s decision.']])+'<p><b>Accept only when the Risk Rating is already Low.</b> Never accept a risk by ignoring it.</p>'}},
+ {t:'Know the words',k:'Risk Register columns',body:function(){return tbl(['Word','What it is','Example'],[['Existing Controls','Already in place before you add anything new.','A signed venue permit'],['Additional Controls','Done before or during the activity to stop the risk or catch it early. Lowers Occurrence.','Safety briefing, headcounts'],['Mitigation','Limits the damage if the risk happens anyway. Lowers Impact.','First aid, call guardians'],['Residual Risk Rating','The rating you expect after Additional Controls and Mitigation. A target; recheck when done.','8 Medium → 2 Low']])}},
+ {t:'Your team\'s biggest risk',k:'Team exercise',body:function(){return '<p>Think of the biggest risk to <b>your</b> activity.</p><ol><li>Describe it in one line.</li><li>Rate Occurrence and Impact as it stands today.</li><li>We rank every team\'s risk on the screen.</li></ol><p class="muted">Then fill in the rest of your Risk Register: Existing Controls, Additional Controls, Mitigation, and the Residual Risk Rating.</p>'},prompt:{base:'risk',type:'risk',q:'Your activity\'s biggest risk: describe it, then rate Occurrence and Impact as it stands today.'}}
+]},
+{id:'pres',n:'Peer review and presentations',min:21,tag:'Swap plans for five minutes, then each team presents. Phones rate each plan.',slides:[
+ {t:'Peer review',k:'5 min · swap with another team',body:function(){return '<p>Swap proposals with another team. Check three things:</p><ul><li>Is the <b>objective</b> measurable, with a KPI, target, and date?</li><li>Is the <b>budget</b> itemized, with a cost per participant?</li><li>Is the top <b>risk</b> rated, with Additional Controls and Mitigation?</li></ul><p class="muted">Tell them one thing that is strong and one thing to fix.</p>'},prompt:{base:'peer',type:'scale',q:'How ready is the plan you reviewed? 1 = needs work, 5 = ready to implement.'}},
+ {t:'Team presentations',k:'16 min',body:function(){return '<p>Each team: <b>objective</b>, <b>cost per participant</b>, <b>top risk</b> and what you will do about it.</p><div class="box" style="margin-top:12px"><div class="row" style="align-items:center"><span class="big tmr" id="pt" style="min-width:0">3:00</span><button class="btn sm" data-p="120">2 min</button><button class="btn sm" data-p="180">3 min</button><button class="btn sm" data-p="240">4 min</button><button class="btn sm pri" data-act="ptgo">Start / pause</button></div></div><p class="muted">Push the rating to phones after each team.</p>'},init:function(root,cleanup){
+   var left=180,run=false,iv=setInterval(function(){if(run){left--;draw()}},1000);cleanup.push(function(){clearInterval(iv)});
+   function draw(){var a=Math.abs(left);$('#pt',root).textContent=(left<0?'-':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0');$('#pt',root).style.color=left<0?'var(--bad)':''}
+   root.addEventListener('click',function(e){var p=e.target.getAttribute('data-p');if(p){left=+p;run=false;draw()}else if(e.target.getAttribute('data-act')==='ptgo'){run=!run}});draw();},prompt:{base:'pres',type:'scale',q:'Rate the plan you just heard. 1 = needs work, 5 = ready to implement.'}}
+]},
+{id:'close',n:'Closing',min:5,tag:'The 7 Habits wrap-up and one commitment each.',slides:[
+ {t:'The 7 Habits wrap-up',k:'Closing',body:function(){return '<ol style="font-size:clamp(16px,2vw,22px);columns:2;column-gap:32px;padding-left:1.2em">'+HABITS.map(function(h,i){return '<li'+(i===3?' style="font-weight:800;color:var(--gold)"':'')+'>'+h+'</li>'}).join('')+'</ol><p style="font-size:clamp(20px,3vw,32px);font-weight:700">And that\'s the 7 Habits of Highly <span class="blank">Efficient</span> Leaders!</p><p class="muted">With thanks to Stephen Covey, whose book is <i>The 7 Habits of Highly Effective People</i>.</p>'}},
+ {t:'One commitment',k:'Closing',body:function(){return '<p>What is the <b>first thing</b> you will do next week to move your idea toward impact?</p>'},prompt:{base:'commit',type:'text',q:'What is the first thing you will do next week to move your idea toward impact?'}},
+ {t:'Salamat po!',k:'Thank you',body:function(){return '<p style="font-size:clamp(22px,4vw,40px);font-weight:700">Ideas become impact when we plan, budget, and prepare for what could go wrong.</p>'}}
+]}];
+SEGS.forEach(function(s,si){s.slides.forEach(function(sl,i){sl.id=sl.id||(s.id+'-'+i);if(sl.prompt)sl.prompt.seg=s.n})});
+
+/* ---------- state ---------- */
+var app=$('#app'),uid=null,isOwner=false,KEY='';
+var mode='boot',view={t:'home'},live=null,resp=[],mine=null,draft={},editing=false,showNames=false,unsent=false,cleanup=[],clearArm=false;
+var timers={};SEGS.forEach(function(s){timers[s.id]={left:s.min*60,run:false}});
+var toastEl=null;
+function flash(m){if(toastEl)toastEl.remove();toastEl=document.createElement('div');toastEl.className='toast';toastEl.textContent=m;document.body.appendChild(toastEl);setTimeout(function(){if(toastEl){toastEl.remove();toastEl=null}},3200)}
+
+/* ---------- server calls (Cloudflare Worker) ---------- */
+function api(path,o){o=o||{};var init={method:o.body?'POST':'GET',headers:{},cache:'no-store'};if(o.key)init.headers['X-Key']=o.key;if(o.body){init.headers['Content-Type']='application/json';init.body=JSON.stringify(o.body)}return fetch(path,init).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})}
+var chainL=Promise.resolve(),chainM=Promise.resolve();
+var liveBusy=0;
+function setLive(next){live=next;renderPanel();liveBusy++;
+  chainL=chainL.then(function(){return api('/api/live',{key:KEY,body:next})}).then(function(){netOk(true)}).catch(function(){netOk(false);flash('Could not update the phones. Check the connection and try again.')}).then(function(){liveBusy--});return chainL}
+/* Answers are kept on the phone first. If sending fails, we retry when the connection comes back. */
+function saveMine(){var d=JSON.parse(JSON.stringify(mine));unsent=true;try{localStorage.setItem('iti_mine',JSON.stringify(d))}catch(e){}
+  chainM=chainM.then(function(){return api('/api/me',{body:{cid:uid,doc:d}})}).then(function(){if(JSON.stringify(mine)===JSON.stringify(d))unsent=false;netOk(true);return true}).catch(function(e){if(String(e.message)==='400'){unsent=false;flash('That answer could not be saved.');return false}netOk(false);return false});
+  return chainM.then(function(ok){if(mode==='phone')renderPhone();return ok})}
+function retryUnsent(){if(unsent&&mine&&mode==='phone'&&epochKnown)saveMine()}
+/* After "Clear all answers" the server's epoch goes up: forget this phone's old copy and join again. */
+var epochKnown=false;
+function onEpoch(ep){if(typeof ep!=='number'||mode!=='phone')return;var had=null;try{had=localStorage.getItem('iti_epoch');localStorage.setItem('iti_epoch',String(ep))}catch(e){}
+  var first=!epochKnown;epochKnown=true;
+  if(had!==null&&had!==String(ep)){mine=null;unsent=false;draft={};editing=false;lastView='';try{localStorage.removeItem('iti_mine');localStorage.removeItem('iti_draft')}catch(e){}renderPhone();return}
+  if(first)retryUnsent()}
+
+/* ---------- results ---------- */
+function answersFor(pid){var out=[];resp.forEach(function(r){var a=r.data.answers&&r.data.answers[pid];if(a)out.push({team:r.data.team,name:r.data.name,v:a.v,t:a.t||0})});return out.sort(function(a,b){return b.t-a.t})}
+function summarize(p){var A=answersFor(p.id),res={n:A.length};
+  if(p.type==='choice'){res.counts=(p.options||[]).map(function(_,i){return A.filter(function(a){return a.v===i}).length});if(p.correct!=null)res.correct=p.correct}
+  if(p.type==='number'&&p.correct!=null){res.correct=p.correct;res.right=A.filter(function(a){return Number(a.v)===p.correct}).length}
+  if(p.type==='scale'&&A.length){res.avg=Math.round(A.reduce(function(s,a){return s+Number(a.v)},0)/A.length*10)/10}
+  return res}
+function resultsHTML(p){var A=answersFor(p.id);if(!A.length)return '<p class="muted">No answers yet.</p>';
+  var who=function(a){return esc(showNames&&a.name?a.name+' · ':'')+'Team '+esc(a.team||'?')};
+  if(p.type==='text')return '<div class="wall">'+A.map(function(a){return '<div class="note">'+esc(a.v)+'<small>'+who(a)+'</small></div>'}).join('')+'</div>';
+  if(p.type==='choice'){var s=summarize(p),max=Math.max.apply(null,s.counts.concat([1]));return p.options.map(function(o,i){return '<div class="bar'+(p.correct===i?' right':'')+'"><span>'+esc(o)+(p.correct===i?' ✓':'')+'</span><b>'+s.counts[i]+'</b><div class="tr"><i style="width:'+(s.counts[i]/max*100)+'%"></i></div></div>'}).join('')}
+  if(p.type==='number'){var r='<div class="row">'+A.map(function(a){return '<span class="chip'+(p.correct!=null&&Number(a.v)===p.correct?' ok':'')+'">'+esc(a.v)+'</span>'}).join('')+'</div>';if(p.correct!=null)r+='<p>Correct: <b>'+p.correct+'</b>. '+summarize(p).right+' of '+A.length+' got it.</p>';return r}
+  if(p.type==='scale'){var c=[0,0,0,0,0];A.forEach(function(a){c[a.v-1]++});var mx=Math.max.apply(null,c.concat([1]));return '<p>Average <b>'+summarize(p).avg+'</b> from '+A.length+'</p>'+c.map(function(n,i){return '<div class="bar"><span>'+(i+1)+'</span><b>'+n+'</b><div class="tr"><i style="width:'+(n/mx*100)+'%"></i></div></div>'}).join('')}
+  if(p.type==='risk'){A=A.filter(function(a){return a.v&&typeof a.v==='object'});var rows=A.slice().sort(function(a,b){return b.v.occ*b.v.imp-a.v.occ*a.v.imp});return '<div class="tw"><table class="t"><thead><tr><th>Risk</th><th class="num">Occ</th><th class="num">Imp</th><th>Rating</th><th>Team</th></tr></thead><tbody>'+rows.map(function(a){return '<tr><td>'+esc(a.v.text)+'</td><td class="num">'+esc(a.v.occ)+'</td><td class="num">'+esc(a.v.imp)+'</td><td>'+badge(Number(a.v.occ)*Number(a.v.imp)||0)+'</td><td>'+who(a)+'</td></tr>'}).join('')+'</tbody></table></div>'}
+  return ''}
+
+/* ---------- presenter ---------- */
+function curSlide(){return view.t==='slide'?SEGS[view.s].slides[view.i]:null}
+function go(s,i){cleanup.forEach(function(f){f()});cleanup=[];view=s==null?{t:'home'}:{t:'slide',s:s,i:i};try{sessionStorage.setItem('iti_view',JSON.stringify(view))}catch(e){}renderPresenter();window.scrollTo(0,0)}
+function fmt(sec){var a=Math.abs(sec);return (sec<0?'-':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0')}
+function statusChip(){return '<span class="chip netchip '+(net.ok?(net.ws?'ok':''):'gold')+'">'+(net.ok?(net.ws?'Live':'Live (slow mode)'):'Reconnecting…')+'</span>'}
+function renderPresenter(){
+  if(view.t==='home'){
+    app.className='';
+    var tot=SEGS.reduce(function(a,s){return a+s.min},0);
+    app.innerHTML='<div class="home"><div class="hero"><div class="k">SK Leadership Session · South Caloocan</div><h1>From Ideas to Impact</h1><p>Planning Responsibly, Budgeting Transparently, and Managing Risks Proactively. '+tot+' minutes.</p></div>'
+    +'<div class="strip">'+SEGS.map(function(s){return '<i style="flex:'+s.min+'" title="'+esc(s.n)+'"></i>'}).join('')+'</div>'
+    +'<div class="segs">'+SEGS.map(function(s,i){var q=s.slides.filter(function(x){return x.prompt}).length;return '<button class="seg" data-act="open" data-s="'+i+'"><span class="n">'+(i+1)+' · '+s.min+' min</span><h2>'+esc(s.n)+'</h2><span class="muted">'+esc(s.tag)+'</span><span class="m"><span class="chip">'+s.slides.length+' slides</span>'+(q?'<span class="chip gold">'+q+' phone question'+(q>1?'s':'')+'</span>':'')+'</span></button>'}).join('')+'</div>'
+    +'<div class="join">'+qrBlock('qrHome','150px')+'<div class="jt"><div class="row"><span id="jn" class="chip">'+resp.length+' joined</span>'+statusChip()+'</div><span class="muted">Participants scan the code or open <b>'+esc(JOIN_LABEL)+'</b> on their phone, type a first name, tap a team, and wait for your questions.</span></div></div>'
+    +'<div class="tools"><button class="btn" data-act="phone">Preview phone view</button><button class="btn" data-act="ask">Ask a question now</button><button class="btn ghost" data-act="clear">'+(clearArm?'Tap again to delete all answers':'Clear all answers')+'</button></div></div>';
+    updJoined();return}
+  var seg=SEGS[view.s],sl=seg.slides[view.i],T=timers[seg.id];
+  app.className='deck';
+  app.innerHTML='<div class="top"><button class="btn sm" data-act="home">← Home</button><span class="chip">'+esc(seg.n)+'</span><span class="sp"></span><span class="tmr" id="tmr"></span><button class="btn sm" data-act="tgo" id="tgo"></button><button class="btn sm ghost" data-act="trs">Reset</button></div>'
+  +'<div class="stage withp"><section class="slide" id="slide"><div class="kick">'+esc(sl.k||'')+'</div><h2>'+esc(sl.t)+'</h2><div id="sbody">'+sl.body()+'</div></section><aside id="panel"><div id="plive"></div><details id="askd" class="card"><summary><b>Ask a question now</b></summary><div id="askf"></div></details></aside></div>'
+  +'<div class="bottom"><button class="btn" data-act="prev">← Back</button><div class="dots">'+seg.slides.map(function(x,i){return '<i class="'+(i===view.i?'on':'')+'"></i>'}).join('')+'</div><button class="btn pri" data-act="next">'+(view.i===seg.slides.length-1?(view.s===SEGS.length-1?'Home':'Next segment →'):'Next →')+'</button></div>';
+  $('#askf').innerHTML=askForm();
+  if(sl.init)sl.init($('#sbody'),cleanup);
+  updTimer();renderPanel()}
+function askForm(){return '<label class="lab">Question</label><input type="text" id="aq" placeholder="Type a question for the phones"><label class="lab">Answer type</label><select id="at"><option value="text">Short text</option><option value="choice">Choice</option><option value="number">Number</option><option value="scale">Rating 1 to 5</option></select><div id="aoWrap" style="display:none"><label class="lab">Choices, separated by commas</label><input type="text" id="ao" placeholder="Yes, No, Not sure"></div><div class="row"><button class="btn pri sm" data-act="askgo">Push to phones</button></div>'}
+function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined'}
+function renderPanel(){var el=$('#plive');if(!el)return;var sl=curSlide(),sp=sl&&sl.prompt,lp=live&&live.prompt;
+  var h='<div class="card"><div class="ph"><b>Phones</b><span class="chip">'+resp.length+' joined</span>'+statusChip()+'</div>';
+  if(sp&&!(lp&&lp.base===sp.base)){h+='<div class="pq">'+esc(sp.q)+'</div><div class="row"><button class="btn pri" data-act="push">Push to phones</button></div>'}
+  if(lp){var open=live.open!==false,answered=answersFor(lp.id).length;
+    h+=(sp&&lp.base===sp.base?'':'<hr style="border:0;border-top:1px solid var(--line)"><span class="chip gold">Live question</span>')+'<div class="pq">'+esc(lp.q)+'</div><div class="ph"><span class="chip '+(open?'ok':'')+'">'+(open?'Open':'Closed')+'</span><span class="muted">'+answered+' of '+resp.length+' answered</span></div>'
+    +'<div class="row"><button class="btn sm" data-act="toggleopen">'+(open?'Close answers':'Reopen')+'</button>'+((lp.type==='choice'||lp.type==='number'||lp.type==='scale')?'<button class="btn sm" data-act="reveal">'+(live.result?'Hide from phones':'Show result on phones')+'</button>':'')+'<button class="btn sm ghost" data-act="remove">Remove from phones</button><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-act="names" '+(showNames?'checked':'')+'> names</label></div>'+resultsHTML(lp);
+    if(sp&&lp.base===sp.base){h+='<div class="row"><button class="btn sm" data-act="push">Push again (new round)</button></div>'}}
+  else if(!sp)h+='<p class="muted">No question on the phones. Slides with a phone question show a Push button here.</p>';
+  el.innerHTML=h+'</div>'}
+function updTimer(){if(view.t!=='slide')return;var T=timers[SEGS[view.s].id],t=$('#tmr'),b=$('#tgo');if(!t)return;t.textContent=fmt(T.left);t.classList.toggle('over',T.left<0);b.textContent=T.run?'Pause':'Start'}
+setInterval(function(){var any=false;SEGS.forEach(function(s){if(timers[s.id].run){timers[s.id].left--;any=true}});if(any)updTimer()},1000);
+function push(p,seg){var o={id:p.base+'@'+Date.now().toString(36),base:p.base,type:p.type,q:p.q,seg:seg||''};if(p.options)o.options=p.options;if(p.correct!=null)o.correct=p.correct;setLive({prompt:o,open:true,result:null,ts:Date.now()})}
+
+/* ---------- phone ---------- */
+var TEAMS=[1,2,3,4,5,6,7,8];
+function renderPhone(){
+  if(mode!=='phone')return;
+  var fx=focusSnap();
+  try{renderPhoneInner()}finally{focusRestore(fx)}}
+function renderPhoneInner(){
+  app.className='';
+  var h='<div class="phone"><div><div class="brand">SK Leadership Session</div><h1>From Ideas to Impact</h1></div>';
+  if(isOwner)h+='<div><button class="btn sm" data-act="topres">← Presenter view</button></div>';
+  if(!uid){h+='<div class="card"><b>Sign in to join.</b><p class="muted">Please reload this page.</p></div></div>';app.innerHTML=h;return}
+  if(!mine||mine.editProfile){
+    var nm=(draft.name!=null?draft.name:(mine&&mine.name)||''),tm=draft.team!=null?draft.team:(mine&&mine.team)||0;
+    h+='<div class="card"><b>Join the session</b><label class="lab">Your name</label><input type="text" id="jname" maxlength="40" value="'+esc(nm)+'" placeholder="First name"><label class="lab">Your team</label><div class="teams">'+TEAMS.map(function(t){return '<button data-act="team" data-t="'+t+'" class="'+(tm===t?'on':'')+'">'+t+'</button>'}).join('')+'</div><div class="row"><button class="btn pri" data-act="joingo">Join</button></div></div></div>';app.innerHTML=h;return}
+  h+='<div class="muted">'+esc(mine.name)+' · Team '+mine.team+' <button class="btn sm ghost" data-act="editprof">Change</button></div>';
+  var lp=live&&live.prompt;
+  if(!lp){h+='<div class="card"><b>You are in.</b><p class="muted">Wait for the next question. It will appear here by itself.</p></div></div>';app.innerHTML=h;return}
+  var open=live.open!==false,mineA=mine.answers&&mine.answers[lp.id];
+  h+='<div class="card"><span class="chip gold">'+esc(lp.seg||'Question')+'</span><div class="q">'+esc(lp.q)+'</div>';
+  if(mineA&&!editing){h+=(unsent?'<div class="sent wait">Saved on this phone. Sending when the connection is back…</div>':'<div class="sent">Sent ✓</div>')+'<p>'+esc(showAns(lp,mineA.v))+'</p>'+(open?'<button class="btn sm" data-act="edit">Change my answer</button>':'')}
+  else if(!open){h+='<p class="muted">This question is closed.</p>'}
+  else{h+=inputHTML(lp)+'<div class="row"><button class="btn pri" data-act="send">Send</button></div>'}
+  if(live.result&&live.result.n!=null)h+=resultPhone(lp,live.result,mineA);
+  h+='</div></div>';app.innerHTML=h;
+  var ta=$('#din');if(ta&&draft.pid===lp.id&&draft.text!=null)ta.value=draft.text}
+/* Re-renders replace the DOM. Put focus, caret and typed text back so typing is never lost. */
+function focusSnap(){var a=document.activeElement;if(!a||!a.id||!app.contains(a))return null;var o={id:a.id};try{o.s=a.selectionStart;o.e=a.selectionEnd}catch(e){}return o}
+function focusRestore(o){if(!o)return;var el=document.getElementById(o.id);if(!el)return;try{el.focus({preventScroll:true});if(o.s!=null&&el.setSelectionRange)el.setSelectionRange(o.s,o.e)}catch(e){}}
+function saveDraft(){try{localStorage.setItem('iti_draft',JSON.stringify({pid:draft.pid,text:draft.text,v:draft.v,occ:draft.occ,imp:draft.imp}))}catch(e){}}
+function showAns(p,v){if(p.type==='choice')return p.options[v]||'';if(p.type==='risk')return v.text+' — Occurrence '+v.occ+' × Impact '+v.imp+' = '+v.occ*v.imp+' ('+band(v.occ*v.imp).n+')';return String(v)}
+function inputHTML(p){
+  if(draft.pid!==p.id){draft={pid:p.id,name:draft.name,team:draft.team};saveDraft()}
+  if(p.type==='text')return '<textarea id="din" maxlength="300" placeholder="Type your answer"></textarea>';
+  if(p.type==='number')return '<input type="number" id="din" inputmode="decimal" placeholder="Number">';
+  if(p.type==='choice')return '<div class="pick col">'+p.options.map(function(o,i){return '<button data-act="pick" data-n="'+i+'" class="'+(draft.v===i?'on':'')+'">'+esc(o)+'</button>'}).join('')+'</div>';
+  if(p.type==='scale')return '<div class="pick">'+[1,2,3,4,5].map(function(n){return '<button data-act="pick" data-n="'+n+'" class="'+(draft.v===n?'on':'')+'">'+n+'</button>'}).join('')+'</div><div class="muted" style="display:flex;justify-content:space-between;margin-top:4px"><span>needs work</span><span>ready</span></div>';
+  if(p.type==='risk'){var r=(draft.occ||0)*(draft.imp||0);return '<textarea id="din" maxlength="200" placeholder="Describe the risk in one line"></textarea><span class="lab">Occurrence (how likely)</span><div class="pick">'+[1,2,3,4,5].map(function(n){return '<button data-act="occ" data-n="'+n+'" class="'+(draft.occ===n?'on':'')+'">'+n+'</button>'}).join('')+'</div><span class="lab">Impact (how bad)</span><div class="pick">'+[1,2,3,4,5].map(function(n){return '<button data-act="imp" data-n="'+n+'" class="'+(draft.imp===n?'on':'')+'">'+n+'</button>'}).join('')+'</div>'+(r?'<p style="margin-top:12px">'+draft.occ+' × '+draft.imp+' = '+badge(r)+'</p>':'')}
+  return ''}
+function resultPhone(p,r,a){var h='<div class="res">';
+  if(p.type==='choice'){if(r.correct!=null)h+='<b>Answer:</b> '+esc(p.options[r.correct])+(a?(a.v===r.correct?' ✓ You got it.':' — not quite.'):'');else h+=r.counts.map(function(c,i){return esc(p.options[i])+': <b>'+c+'</b>'}).join('<br>')}
+  else if(p.type==='number'){h+='<b>Answer:</b> '+r.correct+(a?(Number(a.v)===r.correct?' ✓ You got it.':' — not quite.'):'')+'<br>'+r.right+' of '+r.n+' got it.'}
+  else if(p.type==='scale'){h+='<b>Average:</b> '+r.avg+' from '+r.n+' ratings'}
+  return h+'</div>'}
+function sendAnswer(){var lp=live&&live.prompt;if(!lp)return;var v,t=$('#din');
+  if(lp.type==='text'){v=(t.value||'').trim();if(!v)return flash('Type an answer first.')}
+  else if(lp.type==='number'){v=t.value===''?null:Number(t.value);if(v==null||!isFinite(v))return flash('Enter a number.')}
+  else if(lp.type==='choice'||lp.type==='scale'){v=draft.v;if(v==null)return flash('Pick one first.')}
+  else if(lp.type==='risk'){var tx=(t.value||'').trim();if(!tx||!draft.occ||!draft.imp)return flash('Describe the risk and pick both ratings.');v={text:tx,occ:draft.occ,imp:draft.imp}}
+  mine.answers=Object.assign({},mine.answers);mine.answers[lp.id]={v:v,t:Date.now()};editing=false;draft={pid:lp.id,name:draft.name,team:draft.team};renderPhone();
+  saveDraft();saveMine().then(function(ok){if(ok===false&&unsent)flash('No connection. Your answer is saved and will be sent automatically.')})}
+
+/* ---------- events ---------- */
+document.addEventListener('keydown',function(e){if(mode!=='presenter'||view.t!=='slide')return;var tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return;if(e.key==='ArrowRight')act('next',{});else if(e.key==='ArrowLeft')act('prev',{})});
+app.addEventListener('input',function(e){var t=e.target;
+  if(t.id==='din'){draft.text=t.value;if(live&&live.prompt)draft.pid=live.prompt.id;saveDraft()}
+  else if(t.id==='jname')draft.name=t.value;
+  else if(t.id==='at'){$('#aoWrap').style.display=t.value==='choice'?'block':'none'}});
+app.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b||b.tagName==='INPUT')return;act(b.getAttribute('data-act'),b.dataset)});
+app.addEventListener('change',function(e){if(e.target.getAttribute('data-act')==='names'){showNames=e.target.checked;renderPanel()}});
+function act(a,d){
+  var seg=view.t==='slide'?SEGS[view.s]:null;
+  if(a==='open')go(+d.s,0);
+  else if(a==='home')go();
+  else if(a==='next'){if(view.i<seg.slides.length-1)go(view.s,view.i+1);else if(view.s<SEGS.length-1)go(view.s+1,0);else go()}
+  else if(a==='prev'){if(view.i>0)go(view.s,view.i-1);else if(view.s>0)go(view.s-1,SEGS[view.s-1].slides.length-1);else go()}
+  else if(a==='tgo'){var T=timers[seg.id];T.run=!T.run;updTimer()}
+  else if(a==='trs'){timers[seg.id]={left:seg.min*60,run:false};updTimer()}
+  else if(a==='push'){var sl=curSlide();if(sl&&sl.prompt)push(sl.prompt,sl.prompt.seg)}
+  else if(a==='toggleopen'&&live&&live.prompt)setLive({prompt:live.prompt,open:live.open===false,result:live.result||null,ts:Date.now()});
+  else if(a==='reveal'&&live&&live.prompt)setLive({prompt:live.prompt,open:false,result:live.result?null:summarize(live.prompt),ts:Date.now()});
+  else if(a==='remove')setLive({prompt:null,open:false,result:null,ts:Date.now()});
+  else if(a==='askgo'){var q=($('#aq').value||'').trim(),ty=$('#at').value;if(!q)return flash('Type the question first.');var p={base:'adhoc',type:ty,q:q,seg:'Quick question'};
+    if(ty==='choice'){p.options=($('#ao').value||'').split(',').map(function(x){return x.trim()}).filter(Boolean);if(p.options.length<2)return flash('Give at least two choices.')}
+    push(p,'Quick question');$('#aq').value='';flash('Sent to phones.')}
+  else if(a==='ask'){go(0,0);setTimeout(function(){var d=$('#askd');if(d)d.open=true},0)}
+  else if(a==='phone'){mode='phone';renderPhone()}
+  else if(a==='topres'){mode='presenter';renderPresenter()}
+  else if(a==='clear'){if(!clearArm){clearArm=true;renderPresenter();return}clearArm=false;clearAll()}
+  /* phone */
+  else if(a==='team'){draft.team=+d.t;var n=$('#jname');if(n)draft.name=n.value;renderPhone()}
+  else if(a==='joingo'){var nm=($('#jname').value||'').trim();if(!nm)return flash('Enter your name.');if(!draft.team&&!(mine&&mine.team))return flash('Pick your team.');
+    mine={name:nm,team:draft.team||mine.team,answers:(mine&&mine.answers)||{},joinedAt:(mine&&mine.joinedAt)||Date.now()};draft={name:nm,team:mine.team};renderPhone();saveMine()}
+  else if(a==='editprof'){mine=Object.assign({},mine,{editProfile:true});draft={name:mine.name,team:mine.team};renderPhone()}
+  else if(a==='pick'){draft.v=+d.n;keepText();saveDraft();renderPhone()}
+  else if(a==='occ'){draft.occ=+d.n;keepText();saveDraft();renderPhone()}
+  else if(a==='imp'){draft.imp=+d.n;keepText();saveDraft();renderPhone()}
+  else if(a==='send')sendAnswer();
+  else if(a==='edit'){editing=true;var pr=live&&live.prompt,old=pr&&mine.answers&&mine.answers[pr.id];draft={pid:pr.id,name:draft.name,team:draft.team};if(old){if(pr.type==='choice'||pr.type==='scale')draft.v=old.v;else if(pr.type==='risk'){draft.occ=old.v.occ;draft.imp=old.v.imp;draft.text=old.v.text}else draft.text=String(old.v)}renderPhone();var t=$('#din');if(t&&old&&pr.type==='number')t.value=old.v}
+}
+function keepText(){var t=$('#din');if(t)draft.text=t.value}
+async function clearAll(){try{await api('/api/clear',{key:KEY,body:{}});resp=[];await setLive({prompt:null,open:false,result:null,ts:Date.now()});flash('All answers cleared.');renderPresenter()}catch(e){flash('Could not clear. Check the connection.')}}
+
+/* ---------- boot ---------- */
+function unlockForm(msg){app.innerHTML='<div class="phone"><div><div class="brand">Facilitator</div><h1>From Ideas to Impact</h1></div><div class="card"><label class="lab">Presenter passcode</label><input type="password" id="pk" style="width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:42px" autocomplete="current-password">'+(msg?'<p style="color:var(--bad)">'+esc(msg)+'</p>':'')+'<div class="row"><button class="btn pri" data-act="unlock">Open presenter view</button></div></div></div>'}
+async function startHost(k){try{await api('/api/responses',{key:k});KEY=k;try{sessionStorage.setItem('iti_key',k)}catch(e){}isOwner=true;mode='presenter';return true}catch(e){return false}}
+
+/* ---------- live connection ----------
+   One WebSocket per screen; the server pushes the question when it changes, so
+   40 phones cost a few thousand requests per session instead of ~144,000 polls.
+   If the socket cannot connect, we fall back to a slow poll (every 5 s, paused
+   while the phone screen is off). Failures never clear the screen: we show a
+   small "Reconnecting" bar and keep everything the person typed. */
+var net={ok:true,ws:false},sock=null,wsTry=0,wsTimer=null,pingTimer=null,pongWait=null,fbTimer=null,netStarted=false,lastView='',lastRev=-1,respBusy=false,respAgain=false,respTimer=null,netBar=null;
+function netOk(ok){var was=net.ok;net.ok=ok||net.ws;showNet();if(!was&&net.ok)retryUnsent()}
+function showNet(){if(!netBar){netBar=document.createElement('div');netBar.id='net';netBar.setAttribute('role','status');document.body.appendChild(netBar)}
+  netBar.textContent=net.ok?'':(mode==='phone'?'Reconnecting… Your answers stay on this phone.':'Reconnecting… Phones keep their answers.');
+  netBar.style.display=net.ok?'none':'block';
+  document.querySelectorAll('.netchip').forEach(function(el){el.outerHTML=statusChip()})}
+function onLive(l){
+  if(mode==='presenter'){if(liveBusy)return;var cur=JSON.stringify(live),nx=JSON.stringify(l);if(cur!==nx){live=l;renderPanel()}return}
+  live=l;var p=l&&l.prompt,key=JSON.stringify([p&&p.id,l&&l.open,l&&l.result]);
+  if(key===lastView)return;lastView=key;
+  if(editing&&!(p&&mine&&mine.answers&&mine.answers[p.id]))editing=false;
+  renderPhone()}
+function onRev(r){if(r===lastRev)return;lastRev=r;loadResp()}
+/* Fetch answers for the presenter; at most one request in flight, coalescing bursts. */
+function loadResp(){if(!isOwner)return;if(respBusy){respAgain=true;return}respBusy=true;
+  api('/api/responses',{key:KEY}).then(function(r){netOk(true);var n=JSON.stringify(r);if(n!==JSON.stringify(resp)){resp=r;if(mode==='presenter'){updJoined();renderPanel()}}}).catch(function(){netOk(false)})
+  .then(function(){setTimeout(function(){respBusy=false;if(respAgain){respAgain=false;loadResp()}},800)})}
+function wsUrl(){return (location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/api/ws'+(isOwner?'?role=host':'')}
+function connect(){clearTimeout(wsTimer);if(sock||!('WebSocket' in window))return startFallback();
+  var ws;try{ws=new WebSocket(wsUrl())}catch(e){return startFallback()}sock=ws;
+  ws.onopen=function(){wsTry=0;net.ws=true;netOk(true);stopFallback();clearInterval(pingTimer);
+    pingTimer=setInterval(function(){if(ws.readyState!==1)return;try{ws.send('ping')}catch(e){}clearTimeout(pongWait);pongWait=setTimeout(function(){try{ws.close()}catch(e){}},10000)},25000)};
+  ws.onmessage=function(ev){clearTimeout(pongWait);if(ev.data==='pong')return;var m;try{m=JSON.parse(ev.data)}catch(e){return}
+    if('epoch' in m)onEpoch(m.epoch);if('live' in m)onLive(m.live);if('rev' in m)onRev(m.rev)};
+  ws.onclose=function(){if(sock!==ws)return;sock=null;net.ws=false;clearInterval(pingTimer);clearTimeout(pongWait);
+    startFallback();var wait=Math.min(15000,1000*Math.pow(2,wsTry++))+Math.random()*1000;wsTimer=setTimeout(connect,wait)};
+  ws.onerror=function(){}}
+function dropSocket(){if(sock){var w=sock;sock=null;net.ws=false;try{w.close()}catch(e){}}clearInterval(pingTimer);clearTimeout(pongWait)}
+function pollOnce(){if(document.hidden&&mode==='phone')return;
+  api('/api/live').then(function(r){netOk(true);onEpoch(r&&r.epoch);onLive(r?r.live:null)}).catch(function(){netOk(false)});
+  if(isOwner)loadResp()}
+function startFallback(){if(fbTimer)return;pollOnce();fbTimer=setInterval(function(){if(!net.ws)pollOnce()},5000)}
+function stopFallback(){clearInterval(fbTimer);fbTimer=null}
+function startNet(){if(netStarted)return;netStarted=true;connect();
+  if(isOwner){loadResp();respTimer=setInterval(loadResp,20000)} /* safety refresh, ~360 requests per 2 h */
+  window.addEventListener('offline',function(){dropSocket();netOk(false);startFallback()});
+  window.addEventListener('online',function(){wsTry=0;clearTimeout(wsTimer);connect();pollOnce()});
+  document.addEventListener('visibilitychange',function(){if(document.hidden)return;if(!sock){wsTry=0;connect()}pollOnce();retryUnsent()})}
+
+async function boot(){
+  try{uid=localStorage.getItem('iti_cid');if(!uid){uid='c'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('iti_cid',uid)}}catch(e){uid='c'+Math.random().toString(36).slice(2,10)}
+  try{var dr=JSON.parse(localStorage.getItem('iti_draft')||'null');if(dr&&dr.pid)draft=dr}catch(e){}
+  var host=location.search.indexOf('host')>=0;
+  if(host){var k='';try{k=sessionStorage.getItem('iti_key')||''}catch(e){}
+    if(!(k&&await startHost(k))){mode='lock';unlockForm();return}}
+  else mode='phone';
+  try{var v=JSON.parse(sessionStorage.getItem('iti_view')||'null');if(v&&v.t==='slide'&&SEGS[v.s]&&SEGS[v.s].slides[v.i])view=v}catch(e){}
+  if(mode==='presenter'){renderPresenter();startNet();return}
+  /* Phone: use the copy saved on this phone right away, then check with the server. */
+  var local=null;try{local=JSON.parse(localStorage.getItem('iti_mine')||'null')}catch(e){}
+  try{var m=await api('/api/me?cid='+encodeURIComponent(uid));if(m&&m.name)mine=m;
+    /* Server copy wins unless this phone has answers that never reached it. */
+    if(local&&local.name&&(!m||Object.keys(local.answers||{}).some(function(k){return !(m.answers||{})[k]}))){mine=local;unsent=true}
+    else if(!m)mine=null}
+  catch(e){if(local&&local.name){mine=local;unsent=true}netOk(false)}
+  renderPhone();startNet()}
+app.addEventListener('click',async function(e){var b=e.target.closest('[data-act=unlock]');if(!b)return;var k=($('#pk').value||'').trim();if(await startHost(k)){renderPresenter();startNet()}else unlockForm('That passcode did not work.')});
+boot();
+})();
+</script>
+</body></html>
