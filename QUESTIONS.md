@@ -4,7 +4,7 @@
 
 Keep this page for yourself.
 
-## Opening
+## Opening (12 min)
 
 - *Text* — In one word: how do you feel when you plan an SK activity?
 - *Choice* — Which part of an activity is hardest for your SK? [Planning the activity / Making the budget / Thinking about the risks] (opinion poll)
@@ -13,7 +13,7 @@ Keep this page for yourself.
 - *Text* — Name one SK activity idea you have. What would make it fail?
 - *Choice* — Habit check: "Listen first" is which habit? [the 7 habits] **Answer: 5 Seek First to Understand**
 
-## Part 1 · Plan Responsibly
+## Part 1 · Plan Responsibly (24 min)
 
 - *Choice* — "Hold a basketball league" is… [An activity, not yet an objective / A strong objective / A KPI / A risk] **Answer: An activity, not yet an objective**
 - *Choice* — In the objective formula, what comes right after "so that"? [The activity / The result / The budget / The date] **Answer: The result**
@@ -25,7 +25,7 @@ Keep this page for yourself.
 - *Choice* — Your objective is attendance. Which is the right evidence? [A sign-in sheet / The number of photos taken / A thank-you post online / The budget total] **Answer: A sign-in sheet**
 - *Choice* — Some participants are under 18. What does that trigger? [Guardian consent / A bigger budget / A new venue / Nothing] **Answer: Guardian consent**
 
-## Part 2 · Budget Transparently
+## Part 2 · Budget Transparently (16 min)
 
 - *Number* — Meals: 40 participants × ₱200. What is the total for meals? **Answer: 8,000**
 - *Number* — Total budget ₱18,000 for 40 participants. What is the cost per participant? **Answer: 450**
@@ -37,7 +37,7 @@ Keep this page for yourself.
 - *Choice* — "Food, PHP 5,000" is… [A lump sum, not a budget line / A proper budget line] **Answer: A lump sum, not a budget line**
 - *Choice* — Who checks the budget sheet before it is submitted? [The SK Treasurer / The venue owner / The participants / No one] **Answer: The SK Treasurer**
 
-## Part 3 · Manage Risks Proactively
+## Part 3 · Manage Risks Proactively (40 min)
 
 - *Number* — Occurrence 3 × Impact 4. What is the Risk Rating? **Answer: 12**
 - *Choice* — A Risk Rating of 12 is in which band? [Low / Medium / High / Extreme] **Answer: High**
@@ -57,14 +57,17 @@ Keep this page for yourself.
 - *Choice* — Who should be the owner of a risk? [One named person / Everyone / The whole SK / Whoever is free on the day] **Answer: One named person**
 - *Choice* — After controls, the Residual Risk Rating is still High. What now? [The Committee must approve before the activity proceeds / Proceed anyway / Accept it / Delete the risk] **Answer: The Committee must approve before the activity proceeds**
 
-## Peer review and presentations
+## Peer review and approval (6 min)
 
 - *Text* — What is one strong point of the plan you just reviewed?
-- *Rating 1–5* — Rate the plan you just heard. 1 = needs work, 5 = ready to implement.
 - *Choice* — Habit check: Another team caught a risk you missed, and your draft got better. Which habit? [the 7 habits] **Answer: 6 Synergize**
 - *Choice* — After the proponent signs, who pre-approves the proposal? [The Risk and Safety Committee / The Barangay Council / The SK Treasurer / The participants] **Answer: The Risk and Safety Committee**
 
-## Closing
+## Team presentations (16 min)
+
+- *Rating 1–5* — Rate the plan you just heard. 1 = needs work, 5 = ready to implement.
+
+## Closing (6 min)
 
 - *Text* — One thing you learned today.
 - *Choice* — Which tool will your SK use first? [The objective formula / The itemized budget / The Risk Register] (opinion poll)
