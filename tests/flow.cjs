@@ -137,8 +137,18 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await host.locator('.bq', { hasText: 'Occurrence 3 + Impact 4' }).waitFor({ state: 'detached' });
     await host.click('[data-act=bankused]');
     await host.locator('.bq.done', { hasText: 'Occurrence 3 + Impact 4' }).waitFor(); ok('pushed question leaves the bank list (Show pushed brings it back)');
-    await host.selectOption('#bseg', 'close');
-    await host.locator('.bq', { hasText: 'One thing you learned today.' }).waitFor(); ok('question bank switches segment');
+    const segOpts = await host.locator('#bseg option').evaluateAll((os) => os.map((o) => o.value));
+    assert.deepEqual(segOpts, ['open', 'p1', 'p2', 'p3'], 'only segments presented so far: ' + segOpts);
+    assert.equal(await host.locator('.bq', { hasText: 'Who should be the owner of a risk?' }).count(), 1, 'Know the words was already presented');
+    await host.selectOption('#bseg', 'p1');
+    await host.locator('.bq', { hasText: 'Hold a basketball league' }).waitFor();
+    // Back on the first Part 3 slide, questions from later Part 3 slides are hidden
+    await host.click('[data-act=home]'); await host.click('[data-act=open][data-s="3"]'); await openPanel();
+    await host.evaluate(() => { const d = document.querySelector('#askd'); if (d) d.open = true; });
+    await host.locator('#bankw .bq', { hasText: 'Additional Controls lower which number?' }).waitFor();
+    assert.equal(await host.locator('#bankw .bq', { hasText: 'What is the Impact?' }).count(), 0, 'Impact questions hidden before the Impact slide');
+    assert.equal(await host.locator('#bankw .bq', { hasText: 'What is the treatment?' }).count(), 0, 'treatment questions hidden before the treatment slide');
+    ok('question bank shows only what has been presented so far');
 
     // Questions panel collapses sideways and comes back; the slide gets wider
     const w0 = await host.locator('#slide').evaluate((e) => e.getBoundingClientRect().width);

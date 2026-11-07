@@ -205,6 +205,23 @@ table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)
 @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.regcount b.bump{animation:none}}
 @media (max-width:640px){.hero{flex-direction:column;align-items:flex-start}}
+.work{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:.8em;align-items:start}
+.wsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.35em;counter-reset:w}
+.wsteps li{display:flex;gap:.6em;align-items:flex-start;background:var(--surface2);border-radius:12px;padding:.32em .6em;border-left:6px solid var(--line);margin:0;font-size:.78em;line-height:1.28}
+.wsteps li b{display:block}
+.wsteps li small{display:block;color:var(--muted);font-size:.82em}
+.wsteps .wm{flex:none;font-weight:800;color:var(--gold);min-width:3.6em}
+.wsteps li.on{border-left-color:var(--accent);background:var(--accent-soft)}
+.wsteps li.done{opacity:.55}
+.wside{display:flex;flex-direction:column;gap:.5em}
+.wtimer{background:var(--surface2);border-radius:12px;padding:.5em;text-align:center}
+.wt{display:block;font-size:2.6em;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05}
+.wt.over{color:var(--bad)}
+.wbtns{display:flex;gap:.4em;justify-content:center;margin-top:.3em}
+.wbtns .btn{font-size:.7em}
+.wcheck{background:var(--ok-soft);border-radius:12px;padding:.5em .7em;font-size:.75em;line-height:1.35}
+.wcheck b{display:block;color:var(--ok)}
+@media (max-width:800px){.work{grid-template-columns:1fr}}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -400,6 +417,18 @@ function matrix(o,i){
   return h+'</div>';
 }
 
+
+/* ---------- team work slides: steps from the talk outline with a countdown ---------- */
+function workSlide(o){var total=o.steps.reduce(function(a,x){return a+x[0]},0);
+  return {t:o.t,k:o.k,prompt:o.prompt,body:function(){return '<div class="work"><ol class="wsteps">'+o.steps.map(function(x,i){return '<li data-i="'+i+'"><span class="wm">'+x[0]+' min</span><div><b>'+x[1]+'</b><small>'+x[2]+'</small></div></li>'}).join('')+'</ol>'
+    +'<div class="wside"><div class="wtimer"><span class="wt">'+total+':00</span><div class="wbtns"><button class="btn pri" data-wact="go">Start</button><button class="btn" data-wact="reset">Reset</button></div></div><div class="wcheck"><b>Before moving on</b>'+o.check+'</div></div></div>'},
+  init:function(root,cleanup){var left=total*60,run=false,iv=setInterval(function(){if(run){left--;draw()}},1000);cleanup.push(function(){clearInterval(iv)});
+    function draw(){var a=Math.abs(left),el=$('.wt',root);el.textContent=(left<0?'-':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0');el.classList.toggle('over',left<0);
+      var spent=total*60-left,acc=0,cur=-1;o.steps.forEach(function(x,i){if(cur<0&&spent<(acc+=x[0]*60))cur=i});if(cur<0)cur=o.steps.length;
+      root.querySelectorAll('.wsteps li').forEach(function(li,i){li.classList.toggle('on',(run||spent>0)&&i===cur);li.classList.toggle('done',i<cur&&spent>0)});
+      $('[data-wact=go]',root).textContent=run?'Pause':(spent>0?'Resume':'Start')}
+    root.addEventListener('click',function(e){var w=e.target.closest('[data-wact]');if(!w)return;if(w.dataset.wact==='go')run=!run;else{run=false;left=total*60}draw()});draw()}}}
+
 /* ---------- content ---------- */
 function tbl(head,rows){return '<div class="tw"><table class="t"><thead><tr>'+head.map(function(x){return '<th>'+x+'</th>'}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+c+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>'}
 var HABITS=['Be Proactive','Begin with the End in Mind','Put First Things First','Think Win-Win','Seek First to Understand','Synergize','Sharpen the Saw'];
@@ -426,7 +455,8 @@ var SEGS=[
    draw();}},
  {t:'Objective, then evaluation',k:'How will we know?',body:function(){return '<p>Every objective needs <b>evidence</b>, <b>who</b> collects it, and <b>when</b>. Fill the Actual column after the activity.</p>'+tbl(['Objective','Evidence','Who collects','When','Actual (after)'],[['Train 40 youth in basic first aid, 32 pass the skills check by March 30','Skills check sheets','Kagawad on health','At the end of the training day','<span class="muted">filled in after</span>']])+'<p class="muted">No evidence, no evaluation. If you cannot say how you will check it, rewrite the objective.</p>'}},
  {t:'Which one is measurable?',k:'Quick check',body:function(){return '<p>Pick the objective you could actually evaluate.</p>'},prompt:{base:'quiz1',type:'choice',q:'Which objective is measurable?',options:['To help youth become more active in the barangay.','To train 40 youth in basic first aid so that they can respond to emergencies, measured by passing a skills check, target 32 of 40, by March 30.','To hold a successful first aid seminar.','To raise awareness about first aid.'],correct:1}},
- {t:'Your team\'s objective',k:'Team exercise',body:function(){return '<p>In your team, write <b>one objective</b> for your activity using the formula.</p><div class="formula">To <span class="blank">do what</span> for <span class="blank">whom</span> so that <span class="blank">result</span>, measured by <span class="blank">KPI</span>, target <span class="blank">number</span>, by <span class="blank">date</span>.</div><p>One person types it on their phone. We read a few aloud and tighten them together.</p>'},prompt:{base:'obj',type:'text',q:'Type your team\'s objective in one sentence, using the formula.'}}
+ {t:'Your team\'s objective',k:'Team exercise',body:function(){return '<p>In your team, write <b>one objective</b> for your activity using the formula.</p><div class="formula">To <span class="blank">do what</span> for <span class="blank">whom</span> so that <span class="blank">result</span>, measured by <span class="blank">KPI</span>, target <span class="blank">number</span>, by <span class="blank">date</span>.</div><p>One person types it on their phone. We read a few aloud and tighten them together.</p>'},prompt:{base:'obj',type:'text',q:'Type your team\'s objective in one sentence, using the formula.'}},
+ workSlide({t:'Team work: page 1',k:'Team work · 13 min · proposal page 1',steps:[[3,'Description and need','What is it, and why is it needed?'],[4,'Objectives','2 to 3, each with a KPI and a target, using the formula.'],[3,'Evaluation plan','For each objective: the evidence, who collects it, and when.'],[3,'Who, when, where, how','Participants (count those under 18), date and full venue address, adults in charge, and the program with one owner per item.']],check:'Could someone who was not here run this from page 1? Could someone check each objective with the evidence you listed?'}),
 ]},
 {id:'p2',n:'Part 2 · Budget Transparently',min:16,tag:'Itemize so anyone can check every line, see where the money goes, and keep the budget open after approval.',slides:[
  {t:'Itemize everything',k:'Part 2 · Budget Transparently',body:function(){return '<ul><li>List every item with <b>Qty, Unit, Unit Cost</b>. Then Total.</li><li>The total is a <b>result</b> of the list, not a starting point.</li><li>Keep an <b>Actual (PHP)</b> column and fill it in after the activity.</li><li>Any risk action that costs money needs <b>its own budget line</b>.</li></ul>'}},
@@ -441,7 +471,8 @@ var SEGS=[
    root.addEventListener('click',function(e){if(e.target.getAttribute('data-act')==='addrow'){rows.push(['',1,'',0]);drawRows();var ins=root.querySelectorAll('#itm tbody tr:last-child input');if(ins[0])ins[0].focus()}});
    drawRows();}},
  {t:'Make it checkable',k:'Transparent means anyone can check it',body:function(){return tbl(['Do this','Why'],[['<b>One line per expense</b>','"Food, PHP 5,000" is a lump sum, not a budget line.'],['<b>Show the arithmetic</b>','Qty × Unit Cost = Total, and the total adds up. Anyone can redo it with a calculator.'],['<b>Explain in Remarks</b>','The assumption behind the number, like "30 participants plus 5 staff."'],['<b>Attach proof</b>','Quotations for larger items.'],['<b>Name the source of funds</b>','On one line. The SK Treasurer checks the sheet before it is submitted.'],['<b>Keep it open</b>','Post the approved budget where the community can see it. After the activity, fill in the Actual column.']])}},
- {t:'"What if the budget is just this much?"',k:'Three steps',body:function(){return '<div class="grid2"><div class="box"><b>1. Start from the objective</b>What result must still happen? Protect that first.</div><div class="box"><b>2. Do the math backwards</b>Budget ÷ cost per participant. Cut the number of participants or the cost per head, not the purpose.</div><div class="box"><b>3. Cut safety last</b>First aid, headcounts, and safe venue stay in the budget. Trim extras first.</div></div>'}}
+ {t:'"What if the budget is just this much?"',k:'Three steps',body:function(){return '<div class="grid2"><div class="box"><b>1. Start from the objective</b>What result must still happen? Protect that first.</div><div class="box"><b>2. Do the math backwards</b>Budget ÷ cost per participant. Cut the number of participants or the cost per head, not the purpose.</div><div class="box"><b>3. Never cut safety</b>First aid, headcounts, and a safe venue always stay in the budget. Trim extras first. If you still cannot afford a safety item, shrink or shorten the activity, or drop the risky part. Never drop the safety item.</div></div>'}},
+ workSlide({t:'Team work: page 2, the budget',k:'Team work · 10 min · proposal page 2',steps:[[5,'Cost your program','8 to 10 lines from your Part 1 program: Qty, Unit, Unit Cost, Total, and Remarks.'],[2,'Cost per participant','Write it under the total. Is this where we want the money to go?'],[3,'Swap and check','A neighbor team re-adds your total and marks any line they cannot explain.']],check:'Every program item has a cost, and every cost traces back to a program item.',prompt:{base:'cpp',type:'text',q:'Your team\'s cost per participant, and what it mostly buys.'}}),
 ]},
 {id:'p3',n:'Part 3 · Manage Risks Proactively',min:40,tag:'Rate each risk as Occurrence + Impact, choose a treatment, then build your Risk Register.',slides:[
  {t:'Four words first',k:'Part 3 · Manage Risks Proactively',body:function(){return '<div class="defs">'
@@ -467,7 +498,8 @@ var SEGS=[
  {t:'Worked example: rain',k:'Rate twice',body:function(){return tbl(['Step','What we write'],[['Risk','Rain on the day of an outdoor activity'],['Today (with Existing Controls)','Occurrence 5 (Almost certain: rainy season, rained out last year) + Impact 2 (Minor) = '+badge(7)+'. The Committee must approve.'],['Additional Controls (lowers Occurrence)','Reserve a covered venue as a backup; check the forecast two days before'],['Mitigation (lowers Impact)','Move the program indoors; call guardians if we must stop'],['Residual Risk Rating (target)','Occurrence 2 + Impact 1 = '+badge(3)]])+'<p class="muted">Costs money? Add the covered venue to the budget. This is how Part 2 loops back.</p>'}},
  {t:'What do we do with the rating?',k:'Risk Treatment · office Risk Legend',body:function(){return tbl(['Risk Rating','Treatment','What you do'],[['<b>6 and below</b>','<span class="bd low">ACCEPT</span>','Plan nothing extra. Name one person to watch it and rate it again if things change.'],['<b>Above 6</b>','<span class="bd high">REDUCE, TRANSFER / SHARE, or AVOID</span>','Reduce: add controls and mitigation. Transfer or share: agree in writing that a venue or partner carries part of it. Avoid: drop or redesign that part. <b>The Committee must approve.</b>']])+'<p>Never accept a risk by ignoring it. Accepting still means one named person watches it.</p>'}},
  {t:'Know the words',k:'Risk Register columns',body:function(){return tbl(['Word','What it is','Example'],[['Existing Controls','Already in place before you add anything new.','A signed venue permit'],['Additional Controls','Done before or during the activity to stop the risk or catch it early. Lowers Occurrence.','Safety briefing, headcounts'],['Mitigation','Limits the damage if the risk happens anyway. Lowers Impact.','First aid, call guardians'],['Action','The specific task, with an owner and a date, that puts a control or mitigation in place.','Safety officer buys and checks the first-aid kit by Nov 20'],['Residual Risk Rating','The rating you expect after Additional Controls and Mitigation. A target; recheck when done.','7 (Reduce) → 3 (Accept)'],['Owner','One named person accountable for the risk.','The safety officer']])}},
- {t:'Your team\'s biggest risk',k:'Team exercise',body:function(){return '<p>Think of the biggest risk to <b>your</b> activity.</p><ol><li>Describe it in one line.</li><li>Rate Occurrence and Impact as it stands today.</li><li>We rank every team\'s risk on the screen.</li></ol><p class="muted">Then fill in the rest of your Risk Register: Existing Controls, Additional Controls, Mitigation, and the Residual Risk Rating.</p>'},prompt:{base:'risk',type:'risk',q:'Your activity\'s biggest risk: describe it, then rate Occurrence and Impact as it stands today.'}}
+ {t:'Your team\'s biggest risk',k:'Team exercise',body:function(){return '<p>Think of the biggest risk to <b>your</b> activity.</p><ol><li>Describe it in one line.</li><li>Rate Occurrence and Impact as it stands today.</li><li>We rank every team\'s risk on the screen.</li></ol><p class="muted">Then fill in the rest of your Risk Register: Existing Controls, Additional Controls, Mitigation, and the Residual Risk Rating.</p>'},prompt:{base:'risk',type:'risk',q:'Your activity\'s biggest risk: describe it, then rate Occurrence and Impact as it stands today.'}},
+ workSlide({t:'Team work: page 3, the Risk Register',k:'Team work · 25 min · proposal page 3',steps:[[6,'Rate the four starter risks','Occurrence + Impact = Risk Rating, for your own activity.'],[6,'Add two risks of your own','Use the 4Ws and H: Who, What, Where and When, How, Why.'],[8,'Controls, mitigation, actions','Each action has an owner and a date. Costs money? Add a line on page 2.'],[5,'Rate again','Residual Risk Rating. Still above 6? Flag it for the Committee.']],check:'Close with a round: another team names one risk you missed.'}),
 ]},
 {id:'peer',n:'Peer review and approval',min:6,tag:'Swap drafts with a neighboring team for four minutes, then walk through who signs next.',slides:[
  {t:'Peer review',k:'4 min · swap drafts with a neighboring team',body:function(){return tbl(['Page','Check'],[['<b>Page 1</b>','Every objective has a KPI and a target, and the evaluation says how it will be checked. Every program item has one named owner. Under-18 count, adult supervisors, and venue address are filled in.'],['<b>Page 2</b>','Every line has Qty, Unit, Unit Cost and Total, and the total adds up. Every cost traces to a program item. Cost per participant is written. Every action on page 3 that costs money has a budget line.'],['<b>Page 3</b>','Every risk has an Occurrence Rating, Impact Rating, controls, mitigation, and one named owner. At least two risks are specific to this activity. Any risk rated above 6 is flagged for the Committee.'],['<b>Attachments</b>','Guardian consent or waiver, data privacy notice, permit or MOA, participant list.']])+'<p class="muted">Tell them one thing that is strong and one thing to fix.</p>'},prompt:{base:'peer',type:'scale',q:'How ready is the plan you reviewed? 1 = needs work, 5 = ready to implement.'}},
@@ -504,74 +536,79 @@ SEGS.forEach(function(s,si){s.slides.forEach(function(sl,i){sl.id=sl.id||(s.id+'
 /* ---------- question bank: ready to push with one tap ----------
    type: text | choice | number | scale | risk. correct = index (choice) or value (number). */
 var BANK=[
- {seg:'open',type:'text',q:'In one word: how do you feel when you plan an SK activity?'},
- {seg:'open',type:'choice',q:'Which part of an activity is hardest for your SK?',options:['Planning the activity','Making the budget','Thinking about the risks']},
- {seg:'open',type:'scale',q:'How confident are you in writing an activity proposal? 1 = not yet, 5 = very confident'},
- {seg:'open',type:'choice',q:'In the 7 Habits, which habit is in the middle?',options:['Be Proactive','Think Win-Win','Synergize','Sharpen the Saw'],correct:1},
- {seg:'p1',type:'choice',q:'"Hold a basketball league" is…',options:['An activity, not yet an objective','A strong objective','A KPI','A risk'],correct:0},
- {seg:'p1',type:'choice',q:'In the objective formula, what comes right after "so that"?',options:['The activity','The result','The budget','The date'],correct:1},
- {seg:'p1',type:'choice',q:'Which part makes an objective measurable?',options:['The KPI and target','A catchy title','The venue','The number of SK officials'],correct:0},
- {seg:'p1',type:'text',q:'Write a KPI you could use for a barangay clean-up drive.'},
- {seg:'p1',type:'choice',q:'When do you fill in the Actual column of the evaluation?',options:['Before the activity','During the planning meeting','After the activity','Only if something goes wrong'],correct:2},
- {seg:'p2',type:'choice',q:'The total budget is…',options:['A result of the itemized list','The starting point','Whatever is left in the fund','Decided by the venue'],correct:0},
- {seg:'p2',type:'choice',q:'The budget is cut. What do you cut LAST?',options:['Safety items like first aid and headcounts','Snacks and extras','Giveaways','Decorations'],correct:0},
- {seg:'p2',type:'choice',q:'Your risk action costs money. Where does that cost go?',options:['Its own line in the budget','Nowhere, it is free','Taken from the meals','Paid by participants'],correct:0},
- {seg:'p3',type:'number',q:'Occurrence 3 + Impact 4. What is the Risk Rating?',correct:7},
- {seg:'p3',type:'choice',q:'A Risk Rating of 5. What is the treatment?',options:['Accept','Reduce, Transfer / Share, or Avoid'],correct:0},
- {seg:'p3',type:'choice',q:'A Risk Rating of 8. What is the treatment?',options:['Accept','Reduce, Transfer / Share, or Avoid'],correct:1},
- {seg:'p3',type:'choice',q:'A Risk Rating of 7. Does the Committee need to approve?',options:['Yes, it is above 6','No'],correct:0},
- {seg:'p3',type:'choice',q:'A Risk Rating of 6. What is the treatment?',options:['Accept','Reduce, Transfer / Share, or Avoid'],correct:0},
- {seg:'p3',type:'choice',q:'Additional Controls lower which number?',options:['Occurrence','Impact','The budget','The number of participants'],correct:0},
- {seg:'p3',type:'choice',q:'Mitigation lowers which number?',options:['Occurrence','Impact','The budget','The number of participants'],correct:1},
- {seg:'p3',type:'choice',q:'A participant needs a clinic visit but is not hospitalized. What is the Impact?',options:['1 Negligible','2 Minor','3 Moderate','4 Significant'],correct:1},
- {seg:'p3',type:'choice',q:'The activity gets regional media attention and major complaints. What is the Impact?',options:['2 Minor','3 Moderate','4 Significant','5 Severe'],correct:1},
- {seg:'p3',type:'choice',q:'When can you Accept a risk?',options:['When the Risk Rating is 6 or below','When the Risk Rating is 12','When the budget is tight','Whenever the team agrees'],correct:0},
- {seg:'p3',type:'text',q:'Name one Additional Control for rain on the day of an outdoor activity.'},
- {seg:'p3',type:'risk',q:'Describe one risk for your activity, then rate Occurrence and Impact as it stands today.'},
- {seg:'peer',type:'text',q:'What is one strong point of the plan you just reviewed?'},
- {seg:'pres',type:'scale',q:'Rate the plan you just heard. 1 = needs work, 5 = ready to implement.'},
- {seg:'close',type:'text',q:'One thing you learned today.'},
- {seg:'close',type:'choice',q:'Which tool will your SK use first?',options:['The objective formula','The itemized budget','The Risk Register']},
- {seg:'close',type:'scale',q:'How useful was today\'s session? 1 = not useful, 5 = very useful'},
- {seg:'close',type:'text',q:'What should we improve next time?'}
+ {after:'From Ideas to Impact',seg:'open',type:'text',q:'In one word: how do you feel when you plan an SK activity?'},
+ {after:'What was missing?',seg:'open',type:'choice',q:'Which part of an activity is hardest for your SK?',options:['Planning the activity','Making the budget','Thinking about the risks']},
+ {after:'From Ideas to Impact',seg:'open',type:'scale',q:'How confident are you in writing an activity proposal? 1 = not yet, 5 = very confident'},
+ {after:'The 7 Habits, as a memory device',seg:'open',type:'choice',q:'In the 7 Habits, which habit is in the middle?',options:['Be Proactive','Think Win-Win','Synergize','Sharpen the Saw'],correct:1},
+ {after:'Start with the result, not the activity',seg:'p1',type:'choice',q:'"Hold a basketball league" is…',options:['An activity, not yet an objective','A strong objective','A KPI','A risk'],correct:0},
+ {after:'Build an objective',seg:'p1',type:'choice',q:'In the objective formula, what comes right after "so that"?',options:['The activity','The result','The budget','The date'],correct:1},
+ {after:'Build an objective',seg:'p1',type:'choice',q:'Which part makes an objective measurable?',options:['The KPI and target','A catchy title','The venue','The number of SK officials'],correct:0},
+ {after:'Build an objective',seg:'p1',type:'text',q:'Write a KPI you could use for a barangay clean-up drive.'},
+ {after:'Objective, then evaluation',seg:'p1',type:'choice',q:'When do you fill in the Actual column of the evaluation?',options:['Before the activity','During the planning meeting','After the activity','Only if something goes wrong'],correct:2},
+ {after:'Itemize everything',seg:'p2',type:'choice',q:'The total budget is…',options:['A result of the itemized list','The starting point','Whatever is left in the fund','Decided by the venue'],correct:0},
+ {after:'"What if the budget is just this much?"',seg:'p2',type:'choice',q:'The budget is cut. What must stay in the budget no matter what?',options:['Safety items like first aid and headcounts','Snacks and extras','Giveaways','Decorations'],correct:0},
+ {after:'Itemize everything',seg:'p2',type:'choice',q:'Your risk action costs money. Where does that cost go?',options:['Its own line in the budget','Nowhere, it is free','Taken from the meals','Paid by participants'],correct:0},
+ {after:'How big is the risk?',seg:'p3',type:'number',q:'Occurrence 3 + Impact 4. What is the Risk Rating?',correct:7},
+ {after:'What do we do with the rating?',seg:'p3',type:'choice',q:'A Risk Rating of 5. What is the treatment?',options:['Accept','Reduce, Transfer / Share, or Avoid'],correct:0},
+ {after:'What do we do with the rating?',seg:'p3',type:'choice',q:'A Risk Rating of 8. What is the treatment?',options:['Accept','Reduce, Transfer / Share, or Avoid'],correct:1},
+ {after:'What do we do with the rating?',seg:'p3',type:'choice',q:'A Risk Rating of 7. Does the Committee need to approve?',options:['Yes, it is above 6','No'],correct:0},
+ {after:'What do we do with the rating?',seg:'p3',type:'choice',q:'A Risk Rating of 6. What is the treatment?',options:['Accept','Reduce, Transfer / Share, or Avoid'],correct:0},
+ {after:'Four words first',seg:'p3',type:'choice',q:'Additional Controls lower which number?',options:['Occurrence','Impact','The budget','The number of participants'],correct:0},
+ {after:'Four words first',seg:'p3',type:'choice',q:'Mitigation lowers which number?',options:['Occurrence','Impact','The budget','The number of participants'],correct:1},
+ {after:'Impact: how bad?',seg:'p3',type:'choice',q:'A participant needs a clinic visit but is not hospitalized. What is the Impact?',options:['1 Negligible','2 Minor','3 Moderate','4 Significant'],correct:1},
+ {after:'Impact: how bad?',seg:'p3',type:'choice',q:'The activity gets regional media attention and major complaints. What is the Impact?',options:['2 Minor','3 Moderate','4 Significant','5 Severe'],correct:1},
+ {after:'What do we do with the rating?',seg:'p3',type:'choice',q:'When can you Accept a risk?',options:['When the Risk Rating is 6 or below','When the Risk Rating is 12','When the budget is tight','Whenever the team agrees'],correct:0},
+ {after:'Worked example: rain',seg:'p3',type:'text',q:'Name one Additional Control for rain on the day of an outdoor activity.'},
+ {after:'Risk rating calculator',seg:'p3',type:'risk',q:'Describe one risk for your activity, then rate Occurrence and Impact as it stands today.'},
+ {after:'Peer review',seg:'peer',type:'text',q:'What is one strong point of the plan you just reviewed?'},
+ {after:'Team presentations',seg:'pres',type:'scale',q:'Rate the plan you just heard. 1 = needs work, 5 = ready to implement.'},
+ {after:'Close the loop',seg:'close',type:'text',q:'One thing you learned today.'},
+ {after:'Close the loop',seg:'close',type:'choice',q:'Which tool will your SK use first?',options:['The objective formula','The itemized budget','The Risk Register']},
+ {after:'Close the loop',seg:'close',type:'scale',q:'How useful was today\'s session? 1 = not useful, 5 = very useful'},
+ {after:'Close the loop',seg:'close',type:'text',q:'What should we improve next time?'}
 ,
- {seg:'open',type:'text',q:'Name one SK activity idea you have. What would make it fail?'},
- {seg:'open',type:'choice',q:'Habit check: "Listen first" is which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:4},
- {seg:'p1',type:'choice',q:'Habit check: You wrote the result before you planned a single activity. Which habit is that?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:1},
- {seg:'p1',type:'choice',q:'Habit check: Before deciding what the youth need, you asked the youth. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:4},
- {seg:'p1',type:'choice',q:'Your objective is attendance. Which is the right evidence?',options:['A sign-in sheet','The number of photos taken','A thank-you post online','The budget total'],correct:0},
- {seg:'p1',type:'choice',q:'Some participants are under 18. What does that trigger?',options:['Guardian consent','A bigger budget','A new venue','Nothing'],correct:0},
- {seg:'p2',type:'choice',q:'Habit check: You decided what gets funded first and what can wait. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:2},
- {seg:'p2',type:'choice',q:'"Food, PHP 5,000" is…',options:['A lump sum, not a budget line','A proper budget line'],correct:0},
- {seg:'p2',type:'choice',q:'What goes in the Remarks column?',options:['The assumption behind the number, like "30 participants plus 5 staff"','Your name','The date of the activity','Nothing, leave it blank'],correct:0},
- {seg:'p2',type:'choice',q:'Where should the approved budget go?',options:['Where the community can see it','In the Treasurer\'s drawer only','Nowhere, it is private','Only on the Chairperson\'s phone'],correct:0},
- {seg:'p2',type:'choice',q:'What do you attach for larger items?',options:['Quotations','Nothing','A photo of the venue','The participant list'],correct:0},
- {seg:'p2',type:'text',q:'What does PHP 450 per participant buy in your plan, and is that where the money should go?'},
- {seg:'p2',type:'choice',q:'Who checks the budget sheet before it is submitted?',options:['The SK Treasurer','The venue owner','The participants','No one'],correct:0},
- {seg:'p3',type:'choice',q:'Habit check: You are fixing the problem before it happens instead of reacting. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:0},
- {seg:'p3',type:'choice',q:'Habit check: You want the Committee, the venue owner, and the youth all to say yes. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:3},
- {seg:'p3',type:'choice',q:'"First-aid kit on site" is…',options:['A control','A mitigation','An action'],correct:0},
- {seg:'p3',type:'choice',q:'"Safety officer buys and checks the first-aid kit by Nov 20" is…',options:['A control','A mitigation','An action'],correct:2},
- {seg:'p3',type:'choice',q:'Who should be the owner of a risk?',options:['One named person','Everyone','The whole SK','Whoever is free on the day'],correct:0},
- {seg:'p3',type:'choice',q:'After controls, the Residual Risk Rating is still above 6. What now?',options:['The Committee must approve before the activity proceeds','Proceed anyway','Accept it','Delete the risk'],correct:0},
- {seg:'peer',type:'choice',q:'Habit check: Another team caught a risk you missed, and your draft got better. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:5},
- {seg:'peer',type:'choice',q:'After the proponent signs, who pre-approves the proposal?',options:['The Risk and Safety Committee','The Barangay Council','The SK Treasurer','The participants'],correct:0},
- {seg:'close',type:'choice',q:'Habit check: You review every activity afterward to improve the next proposal. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:6},
- {seg:'close',type:'text',q:'What is one thing your team will change in its draft before submitting?'},
+ {after:'The event that went wrong',seg:'open',type:'text',q:'Name one SK activity idea you have. What would make it fail?'},
+ {after:'The 7 Habits, as a memory device',seg:'open',type:'choice',q:'Habit check: "Listen first" is which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:4},
+ {after:'Start with the result, not the activity',seg:'p1',type:'choice',q:'Habit check: You wrote the result before you planned a single activity. Which habit is that?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:1},
+ {after:'Start with the result, not the activity',seg:'p1',type:'choice',q:'Habit check: Before deciding what the youth need, you asked the youth. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:4},
+ {after:'Objective, then evaluation',seg:'p1',type:'choice',q:'Your objective is attendance. Which is the right evidence?',options:['A sign-in sheet','The number of photos taken','A thank-you post online','The budget total'],correct:0},
+ {after:'Team work: page 1',seg:'p1',type:'choice',q:'Some participants are under 18. What does that trigger?',options:['Guardian consent','A bigger budget','A new venue','Nothing'],correct:0},
+ {after:'"What if the budget is just this much?"',seg:'p2',type:'choice',q:'Habit check: You decided what gets funded first and what can wait. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:2},
+ {after:'Make it checkable',seg:'p2',type:'choice',q:'"Food, PHP 5,000" is…',options:['A lump sum, not a budget line','A proper budget line'],correct:0},
+ {after:'Make it checkable',seg:'p2',type:'choice',q:'What goes in the Remarks column?',options:['The assumption behind the number, like "30 participants plus 5 staff"','Your name','The date of the activity','Nothing, leave it blank'],correct:0},
+ {after:'Make it checkable',seg:'p2',type:'choice',q:'Where should the approved budget go?',options:['Where the community can see it','In the Treasurer\'s drawer only','Nowhere, it is private','Only on the Chairperson\'s phone'],correct:0},
+ {after:'Make it checkable',seg:'p2',type:'choice',q:'What do you attach for larger items?',options:['Quotations','Nothing','A photo of the venue','The participant list'],correct:0},
+ {after:'Itemize, total, cost per participant',seg:'p2',type:'text',q:'What does PHP 450 per participant buy in your plan, and is that where the money should go?'},
+ {after:'Make it checkable',seg:'p2',type:'choice',q:'Who checks the budget sheet before it is submitted?',options:['The SK Treasurer','The venue owner','The participants','No one'],correct:0},
+ {after:'Four words first',seg:'p3',type:'choice',q:'Habit check: You are fixing the problem before it happens instead of reacting. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:0},
+ {after:'What do we do with the rating?',seg:'p3',type:'choice',q:'Habit check: You want the Committee, the venue owner, and the youth all to say yes. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:3},
+ {after:'Know the words',seg:'p3',type:'choice',q:'"First-aid kit on site" is…',options:['A control','A mitigation','An action'],correct:0},
+ {after:'Know the words',seg:'p3',type:'choice',q:'"Safety officer buys and checks the first-aid kit by Nov 20" is…',options:['A control','A mitigation','An action'],correct:2},
+ {after:'Know the words',seg:'p3',type:'choice',q:'Who should be the owner of a risk?',options:['One named person','Everyone','The whole SK','Whoever is free on the day'],correct:0},
+ {after:'What do we do with the rating?',seg:'p3',type:'choice',q:'After controls, the Residual Risk Rating is still above 6. What now?',options:['The Committee must approve before the activity proceeds','Proceed anyway','Accept it','Delete the risk'],correct:0},
+ {after:'Peer review',seg:'peer',type:'choice',q:'Habit check: Another team caught a risk you missed, and your draft got better. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:5},
+ {after:'Who signs next',seg:'peer',type:'choice',q:'After the proponent signs, who pre-approves the proposal?',options:['The Risk and Safety Committee','The Barangay Council','The SK Treasurer','The participants'],correct:0},
+ {after:'Close the loop',seg:'close',type:'choice',q:'Habit check: You review every activity afterward to improve the next proposal. Which habit?',options:['1 Be Proactive','2 Begin with the End in Mind','3 Put First Things First','4 Think Win-Win','5 Seek First to Understand','6 Synergize','7 Sharpen the Saw'],correct:6},
+ {after:'Close the loop',seg:'close',type:'text',q:'What is one thing your team will change in its draft before submitting?'},
 ];
 (function(){var o={};SEGS.forEach(function(x,i){o[x.id]=i});BANK=BANK.map(function(b,i){return [b,i]}).sort(function(a,b){return o[a[0].seg]-o[b[0].seg]||a[1]-b[1]}).map(function(x){return x[0]})})();
 BANK.forEach(function(b,i){b.base='bank'+i});
+/* Only questions about what has already been presented: each one unlocks at its 'after' slide. */
+var SLIDE_POS={},slidePos=0;SEGS.forEach(function(g,gi){g.slides.forEach(function(x,i){if(SLIDE_POS[x.t]==null)SLIDE_POS[x.t]=slidePos;x.pos=slidePos++})});
+BANK.forEach(function(b){if(SLIDE_POS[b.after]==null)throw new Error('Question bank: unknown slide '+b.after);b.pos=SLIDE_POS[b.after]});
+function curPos(){return view.t==='slide'?SEGS[view.s].slides[view.i].pos:-1}
 var TYPE_LABEL={text:'Text',choice:'Choice',number:'Number',scale:'1–5',risk:'Risk'};
 var bankSeg=null,showUsed=false,used={};
 try{used=JSON.parse(localStorage.getItem('iti_used')||'{}')||{}}catch(e){used={}}
 function saveUsed(){try{localStorage.setItem('iti_used',JSON.stringify(used))}catch(e){}}
 /* A bank question counts as pushed if this presenter pushed it, or if any phone has answered it. */
 function isUsed(b){if(used[b.base])return true;return resp.some(function(r){var a=r.data&&r.data.answers;return a&&Object.keys(a).some(function(k){return k.split('@')[0]===b.base})})}
-function bankHTML(){var cur=bankSeg||(view.t==='slide'?SEGS[view.s].id:'open');
-  var all=BANK.filter(function(b){return b.seg===cur}),ready=all.filter(function(b){return !isUsed(b)}),done=all.filter(isUsed);
+function bankHTML(){var here=curPos(),maxSeg=view.t==='slide'?view.s:-1,cur=bankSeg||(view.t==='slide'?SEGS[view.s].id:'open');
+  if(maxSeg<0)return '<p class="muted">Open a slide to see the questions you have covered so far.</p>';
+  var all=BANK.filter(function(b){return b.seg===cur&&b.pos<=here}),ready=all.filter(function(b){return !isUsed(b)}),done=all.filter(isUsed);
   function row(b,isDone){return '<div class="bq'+(isDone?' done':'')+'"><div><span class="chip">'+TYPE_LABEL[b.type]+'</span> '+esc(b.q)+(b.options?'<div class="muted bo">'+b.options.map(esc).join(' · ')+'</div>':'')+'</div><button class="btn sm '+(isDone?'':'pri')+'" data-act="bankgo" data-b="'+b.base.slice(4)+'">'+(isDone?'Again':'Push')+'</button></div>'}
-  return '<label class="lab" for="bseg">Ready questions</label><select id="bseg">'+SEGS.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.n)+'</option>'}).join('')+'</select>'
-  +'<div class="bank">'+(ready.length?ready.map(function(b){return row(b,false)}).join(''):'<p class="muted" style="margin:4px 0">All ready questions for this segment have been pushed.</p>')
+  return '<label class="lab" for="bseg">Ready questions (covered so far)</label><select id="bseg">'+SEGS.filter(function(s,i){return i<=maxSeg}).map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.n)+'</option>'}).join('')+'</select>'
+  +'<div class="bank">'+(ready.length?ready.map(function(b){return row(b,false)}).join(''):'<p class="muted" style="margin:4px 0">'+(all.length?'All questions covered so far in this segment have been pushed.':'No questions yet: they appear as you present the slides they belong to.')+'</p>')
   +(done.length?'<button class="btn sm ghost" data-act="bankused">'+(showUsed?'Hide pushed':'Show pushed ('+done.length+')')+'</button>'+(showUsed?done.map(function(b){return row(b,true)}).join(''):''):'')+'</div>'}
 function drawBank(){var el=$('#bankw');if(el)el.innerHTML=bankHTML()}
 
