@@ -39,10 +39,10 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     assert.equal(r.status, 200); ok('host clear all');
     const post = (path, body, key) => fetch(BASE + path, { method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, key ? { 'x-key': KEY } : {}), body: JSON.stringify(body) });
     const BRGYS = ['Brgy 1', 'Brgy 2', 'Brgy 3', 'Brgy 4', 'Brgy 5', 'Brgy 6'];
-    r = await post('/api/settings', { houses: 9, cap: 5, barangays: BRGYS });
+    r = await post('/api/settings', { cap: 5, barangays: BRGYS });
     assert.equal(r.status, 403);
-    r = await post('/api/settings', { houses: 9, cap: 5, barangays: BRGYS }, true);
-    assert.equal(r.status, 200); ok('host sets 6 barangays, 9 houses, 5 per house (non-host refused)');
+    r = await post('/api/settings', { cap: 5, barangays: BRGYS }, true);
+    assert.equal(r.status, 200); ok('host sets 6 barangays and 5 per house (non-host refused)');
 
     // Host unlock
     await host.goto(BASE + '/?host');
@@ -59,9 +59,10 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phone.fill('#jname', 'Ana');
     await phone.click('[data-act=brgy][data-b="2"]');
     await phone.click('[data-act=joingo]');
-    await phone.getByText('You are in.').waitFor();
-    await phone.locator('.myhouse b', { hasText: /^House / }).waitFor({ timeout: 8000 }); ok('phone joined as Ana from Brgy 3 and was placed in a house');
+    await phone.getByText('You are registered.').waitFor({ timeout: 8000 }); ok('phone registered as Ana from Brgy 3, waiting for a house');
     await host.locator('#jn', { hasText: '1 joined' }).waitFor({ timeout: 8000 }); ok('host sees 1 joined');
+    await host.locator('[data-act=assign]', { hasText: '1 people → 1 houses' }).click();
+    await phone.locator('.myhouse b', { hasText: 'House Stark' }).waitFor({ timeout: 8000 }); ok('host assigns houses; phone shows House Stark by itself');
 
     // First slide has QR
     await host.click('[data-act=open][data-s="0"]');
@@ -160,44 +161,68 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phoneCtx.setOffline(false);
     await phone.locator('#net', { hasText: 'Reconnecting' }).waitFor({ state: 'hidden', timeout: 10000 }); ok('phone recovers after outage');
 
-    // Clear all (two taps): wipes people, keeps the settings; phones go back to the join screen
+    // Clear all (two taps): wipes people and houses, keeps house size and barangays; phones go back to the join screen
     await host.click('[data-act=home]');
-    await host.locator('#hsv', { hasText: /^9$/ }).waitFor({ timeout: 8000 });
+    await host.locator('#hstat', { hasText: 'houses in use' }).waitFor({ timeout: 8000 });
     await host.click('[data-act=clear]');
     await host.click('[data-act=clear]');
     await host.locator('#jn', { hasText: '0 joined' }).waitFor({ timeout: 8000 });
     r = await fetch(BASE + '/api/teams'); const after = await r.json();
-    assert.equal(after.cap, 5); assert.equal(after.houses, 9); assert.deepEqual(after.barangays, BRGYS); assert.deepEqual(after.counts, {});
-    await phone.locator('#jname').waitFor({ timeout: 10000 }); ok('clear all wipes people, keeps settings, phones re-join');
+    assert.equal(after.cap, 5); assert.equal(after.houses, 0); assert.equal(after.reg, 'open'); assert.deepEqual(after.barangays, BRGYS); assert.deepEqual(after.counts, {});
+    await phone.locator('#jname').waitFor({ timeout: 10000 }); ok('clear all wipes people and houses, keeps settings, phones re-join');
 
-    // Random assignment mixes barangays: 2 houses x 3 people, 6 people from 3 barangays
-    r = await post('/api/settings', { houses: 2, cap: 3 }, true); assert.equal(r.status, 200);
-    const placed = [];
-    for (let i = 0; i < 6; i++) {
-      r = await post('/api/me', { cid: 'mix' + i, doc: { name: 'M' + i, barangay: BRGYS[i % 3], answers: {} } });
-      assert.equal(r.status, 200); const j = await r.json(); assert.ok(j.team === 1 || j.team === 2, 'team ' + j.team); placed.push([BRGYS[i % 3], j.team]);
+    // Everyone registers first; then Assign opens just enough houses and mixes barangays
+    r = await post('/api/settings', { cap: 3 }, true); assert.equal(r.status, 200);
+    for (let i = 0; i < 12; i++) {
+      r = await post('/api/me', { cid: 'mix' + i, doc: { name: 'M' + i, barangay: BRGYS[i % 6], answers: {} } });
+      assert.equal(r.status, 200); assert.equal((await r.json()).team, 0, 'no house before Assign');
     }
-    for (const h of [1, 2]) { const bs = placed.filter((x) => x[1] === h).map((x) => x[0]); assert.equal(bs.length, 3); assert.equal(new Set(bs).size, 3, 'house ' + h + ' mixes barangays: ' + bs); }
-    r = await post('/api/me', { cid: 'mix0', doc: { name: 'M0 renamed', barangay: BRGYS[0], team: 2, answers: {} } });
-    const keep = (await r.json()).team; assert.equal(keep, placed[0][1], 'house cannot be changed from a phone'); ok('each house gets one person per barangay; house cannot be changed from a phone');
-    r = await post('/api/me', { cid: 'mix9', doc: { name: 'Seven', barangay: BRGYS[0], answers: {} } });
-    assert.equal(r.status, 409);
-    r = await post('/api/me', { cid: 'mix8', doc: { name: 'Nobody', barangay: 'Not a barangay', answers: {} } });
-    assert.equal(r.status, 400); ok('when every house is full the next person is refused (409); unknown barangay refused');
+    r = await post('/api/me', { cid: 'mix99', doc: { name: 'Nobody', barangay: 'Not a barangay', answers: {} } }); assert.equal(r.status, 400);
+    await host.locator('#hstat', { hasText: '12 registered' }).waitFor({ timeout: 25000 });
+    await host.locator('[data-act=assign]', { hasText: '12 people → 4 houses of up to 3' }).click();
+    await host.locator('#hstat', { hasText: '4 houses in use' }).waitFor({ timeout: 8000 });
+    const docs = async () => { const x = await fetch(BASE + '/api/responses', { headers: { 'x-key': KEY } }); return (await x.json()).map((d) => d.data); };
+    let all = await docs(); const byH = {};
+    for (const d of all) (byH[d.team] = byH[d.team] || []).push(d.barangay);
+    assert.deepEqual(Object.keys(byH).sort(), ['1', '2', '3', '4']);
+    for (const h in byH) { assert.equal(byH[h].length, 3, 'house ' + h + ' size'); assert.equal(new Set(byH[h]).size, 3, 'house ' + h + ' mixes barangays: ' + byH[h]); }
+    const m0 = all.find((d) => d.name === 'M0').team;
+    r = await post('/api/me', { cid: 'mix0', doc: { name: 'M0', barangay: BRGYS[0], team: 9, answers: {} } });
+    assert.equal((await r.json()).team, m0); ok('12 registered → 4 houses of 3, each mixing barangays; a phone cannot change its house');
 
-    // Phone sees "all houses full", host adds a house on Home, phone joins House 3 (Targaryen)
+    // Close registration: new people are refused and phones say so
+    await host.click('[data-act=regtoggle]');
+    await host.locator('#hstat .chip', { hasText: 'Registration closed' }).waitFor(); await host.waitForTimeout(400);
+    r = await post('/api/me', { cid: 'late1', doc: { name: 'Late', barangay: BRGYS[1], answers: {} } }); assert.equal(r.status, 423);
+    await phone.getByText('Registration is closed.').waitFor({ timeout: 15000 }); ok('closed registration: new people refused (423); phone shows it');
+
+    // Reopen: a latecomer is placed right away; all 4 houses are full, so House 5 (Greyjoy) opens; nobody else moves
+    await host.click('[data-act=regtoggle]');
+    await host.locator('#hstat .chip', { hasText: 'Registration open' }).waitFor(); await host.waitForTimeout(400);
+    await phone.locator('#jname').waitFor({ timeout: 15000 });
     await phone.fill('#jname', 'Ben');
     await phone.click('[data-act=brgy][data-b="0"]');
     await phone.click('[data-act=joingo]');
-    await phone.getByText('All houses are full').waitFor({ timeout: 8000 });
-    await host.locator('#hsv', { hasText: /^2$/ }).waitFor({ timeout: 25000 });
-    await host.click('[data-act=hsup]');
-    await host.locator('#hsv', { hasText: /^3$/ }).waitFor(); await host.waitForTimeout(500);
-    await phone.click('[data-act=joingo]');
-    await phone.locator('.myhouse b', { hasText: 'House Targaryen' }).waitFor({ timeout: 8000 }); ok('phone told all houses are full; host adds a house; phone placed in it');
+    await phone.locator('.myhouse b', { hasText: 'House Greyjoy' }).waitFor({ timeout: 8000 });
+    all = await docs(); assert.equal(all.find((d) => d.name === 'M0').team, m0);
+    assert.equal(all.filter((d) => d.team >= 1 && d.team <= 4).length, 12); ok('reopened: latecomer placed in a new house; existing members keep their houses');
+
+    // Same barangay per house: 10 from one barangay → 2 houses of 5; 4 from another → 1 house; latecomers stay with their barangay
+    r = await post('/api/clear', {}, true); assert.equal(r.status, 200);
+    r = await post('/api/settings', { cap: 5, mode: 'same' }, true); assert.equal(r.status, 200);
+    for (let i = 0; i < 14; i++) { r = await post('/api/me', { cid: 'same' + i, doc: { name: 'S' + i, barangay: i < 10 ? BRGYS[0] : BRGYS[1], answers: {} } }); assert.equal(r.status, 200); }
+    r = await post('/api/assign', {}, true); assert.equal(r.status, 200); assert.equal((await r.json()).houses, 3);
+    all = await docs(); const hs = {};
+    for (const d of all) (hs[d.team] = hs[d.team] || []).push(d.barangay);
+    assert.deepEqual(Object.values(hs).map((b) => b.length).sort(), [4, 5, 5]);
+    for (const h in hs) assert.equal(new Set(hs[h]).size, 1, 'house ' + h + ' is one barangay');
+    r = await post('/api/me', { cid: 'same20', doc: { name: 'LateB', barangay: BRGYS[1], answers: {} } }); const tB = (await r.json()).team;
+    assert.equal(hs[tB][0], BRGYS[1], 'latecomer joins a house of their barangay');
+    r = await post('/api/me', { cid: 'same21', doc: { name: 'LateC', barangay: BRGYS[2], answers: {} } }); assert.equal((await r.json()).team, 4, 'new barangay opens a new house');
+    ok('same-barangay houses: 10 → 2 houses of 5, 4 → 1 house; latecomers stay with their barangay');
 
     // Restore and clean up
-    r = await post('/api/settings', { houses: 9, cap: 5 }, true); assert.equal(r.status, 200);
+    r = await post('/api/settings', { cap: 5, mode: 'mix' }, true); assert.equal(r.status, 200);
     r = await post('/api/clear', {}, true); assert.equal(r.status, 200);
 
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('; ')); ok('no page errors');

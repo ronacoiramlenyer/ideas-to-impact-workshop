@@ -7,13 +7,16 @@
 // polling of GET /api/live only if their WebSocket cannot connect.
 import PAGE from "../public/index.html";
 
+const rnd = (n) => { const r = new Uint32Array(1); crypto.getRandomValues(r); return r[0] % n; };
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
 const J = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 const MAX = 8000;
 const CID = /^[a-z0-9]{4,40}$/i;
 const PID = /^[a-z0-9]{1,20}@[a-z0-9]{1,20}$/i; // question id: base@time36
-const TEAM_COUNT = 9; // the 9 Great Houses; names live in public/index.html (TEAMS)
+const TEAM_COUNT = 17; // house names live in public/index.html (TEAMS): 9 Great Houses first, then 8 more
 const TEAM_CAP = 5;    // default most members per house; the presenter can change it (1 to 40)
-const HOUSES = 9;      // default number of houses in play; presenter can lower it
+// Houses in use start at 0 and are set when the presenter taps Assign houses (people ÷ members per house).
 const MAX_BRGY = 12;   // most barangays the presenter can list
 // Participating barangays (South Caloocan). The presenter can edit this list on Home.
 const DEFAULT_BRGYS = ["Barangay 38", "Barangay 39", "Barangay 40", "Barangay 42", "Barangay 45", "Barangay 97"];
@@ -28,14 +31,17 @@ export class Session {
 
   async rev() { return (await this.s.get("rev")) ?? 0; }
   async cap() { return (await this.s.get("cap")) ?? TEAM_CAP; }
-  async houses() { return Math.min((await this.s.get("houses")) ?? HOUSES, TEAM_COUNT); }
+  async houses() { return Math.min((await this.s.get("houses")) ?? 0, TEAM_COUNT); } // 0 = not assigned yet
+  async reg() { return (await this.s.get("reg")) ?? "open"; }
+  async mode() { return (await this.s.get("mode")) ?? "mix"; } // "mix" barangays in each house, or "same" barangay per house
   async brgys() { return (await this.s.get("brgys")) ?? DEFAULT_BRGYS; }
-  async settings() { return { cap: await this.cap(), houses: await this.houses(), barangays: await this.brgys() }; }
+  async settings() { return { cap: await this.cap(), houses: await this.houses(), barangays: await this.brgys(), reg: await this.reg(), mode: await this.mode() }; }
 
-  // Random house for a new participant: only houses in play with room; prefer the houses with the
-  // fewest people from the same barangay (so every house mixes barangays), then the emptiest, then random.
+  // Late registrant (houses already assigned): a house in use with room, preferring the fewest people from the
+  // same barangay, then the emptiest, then random. If every house is full, open the next house.
   async assign(cid, brgy) {
-    const cap = await this.cap(), n = await this.houses(), total = {}, same = {};
+    const cap = await this.cap(), mode = await this.mode(), total = {}, same = {};
+    let n = await this.houses();
     for (const [k, v] of await this.s.list({ prefix: "p:" })) {
       if (k === "p:" + cid || !v || !v.team) continue;
       total[v.team] = (total[v.team] || 0) + 1;
@@ -44,14 +50,67 @@ export class Session {
     let best = [], key = null;
     for (let t = 1; t <= n; t++) {
       if ((total[t] || 0) >= cap) continue;
+      // "same": only houses made up entirely of this barangay; key = [0, size] so the emptiest wins
+      if (mode === "same" && (!total[t] || same[t] !== total[t])) continue;
+      if (mode === "same") { const k = [0, total[t]]; if (!key || k[1] < key[1]) { key = k; best = [t]; } else if (k[1] === key[1]) best.push(t); continue; }
       const k = [same[t] || 0, total[t] || 0];
       if (!key || k[0] < key[0] || (k[0] === key[0] && k[1] < key[1])) { key = k; best = [t]; }
       else if (k[0] === key[0] && k[1] === key[1]) best.push(t);
     }
-    if (!best.length) return 0;
-    const r = new Uint32Array(1); crypto.getRandomValues(r);
-    return best[r[0] % best.length];
+    if (!best.length) {
+      if (n >= TEAM_COUNT) return 0;
+      n += 1; await this.s.put("houses", n); return n;
+    }
+    return best[rnd(best.length)];
   }
+
+  // Presenter taps "Assign houses". First time: open just enough houses for everyone registered
+  // (people ÷ members per house, rounded up), then deal people out barangay by barangay so each house
+  // mixes barangays and sizes differ by at most one. Later taps only place people without a house.
+  async assignAll() {
+    const cap = await this.cap(), docs = [...(await this.s.list({ prefix: "p:" }))];
+    const waiting = docs.filter(([, v]) => v && !v.team);
+    let n = await this.houses(), placed = 0;
+    if (!waiting.length) return { houses: n, placed, waiting: 0 };
+    if (!n && (await this.mode()) === "same") {
+      // One barangay per house: each barangay gets ceil(people / cap) houses, filled evenly.
+      const list = await this.brgys(), byB = {};
+      for (const d of shuffle(waiting)) (byB[d[1].barangay] = byB[d[1].barangay] || []).push(d);
+      const names = Object.keys(byB).sort((a, b) => (list.indexOf(a) + 1 || 99) - (list.indexOf(b) + 1 || 99));
+      const put = {};
+      for (const b of names) {
+        const g = byB[b], k = Math.ceil(g.length / cap);
+        if (n + k > TEAM_COUNT) break; // not enough house names left: raise members per house
+        g.forEach(([key, v], i) => { put[key] = { ...v, team: n + 1 + (i % k) }; placed++; });
+        n += k;
+      }
+      put.houses = n;
+      await this.s.put(put);
+    } else if (!n) {
+      n = Math.min(TEAM_COUNT, Math.max(1, Math.ceil(docs.length / cap)));
+      const byB = {};
+      for (const d of shuffle(waiting)) (byB[d[1].barangay] = byB[d[1].barangay] || []).push(d);
+      const order = shuffle(Object.keys(byB)).flatMap((k) => byB[k]);
+      const start = rnd(n), size = {}, put = {};
+      order.forEach(([k, v], i) => {
+        let t = ((start + i) % n) + 1, tries = 0;
+        while ((size[t] || 0) >= cap && tries++ < n) t = (t % n) + 1;
+        if ((size[t] || 0) >= cap) return; // more people than houses can hold
+        size[t] = (size[t] || 0) + 1; put[k] = { ...v, team: t }; placed++;
+      });
+      put.houses = n;
+      await this.s.put(put);
+    } else {
+      for (const [k, v] of shuffle(waiting)) {
+        const t = await this.assign(k.slice(2), v.barangay);
+        if (!t) break;
+        await this.s.put(k, { ...v, team: t }); placed++;
+      }
+      n = await this.houses();
+    }
+    return { houses: n, placed, waiting: waiting.length - placed };
+  }
+
   // Members per house, optionally leaving one participant out.
   async counts(exceptCid) {
     const c = {};
@@ -93,21 +152,33 @@ export class Session {
     if (u.pathname === "/settings") {
       const b = await req.json();
       if (b.cap != null) await this.s.put("cap", b.cap);
-      if (b.houses != null) await this.s.put("houses", b.houses);
+      if (b.reg != null) await this.s.put("reg", b.reg);
+      if (b.mode != null) await this.s.put("mode", b.mode);
       if (b.barangays != null) await this.s.put("brgys", b.barangays);
       return J({ ok: true, ...(await this.settings()) });
+    }
+    if (u.pathname === "/assign") {
+      const r = await this.assignAll();
+      await this.s.put("rev", (await this.rev()) + 1);
+      await this.broadcast({ live: false });
+      for (const ws of this.state.getWebSockets("phone")) { try { ws.send('{"me":1}'); } catch (e) {} } // phones fetch their house
+      return J({ ok: true, ...r });
     }
     if (u.pathname === "/me") {
       const b = await req.json();
       // The server picks the house. Once someone has a house it never changes from the phone.
       const before = await this.s.get("p:" + b.cid);
-      if (before && before.team) b.doc.team = before.team;
+      if (before) b.doc.team = before.team || 0; // registered people keep their house (or keep waiting for one)
       else {
+        if ((await this.reg()) === "closed") return J({ error: "registration closed" }, 423);
         const list = await this.brgys();
         if (list.length && !list.includes(b.doc.barangay)) return J({ error: "unknown barangay" }, 400);
-        const t = await this.assign(b.cid, b.doc.barangay);
-        if (!t) return J({ error: "all houses full" }, 409);
-        b.doc.team = t;
+        b.doc.team = 0;
+        if (await this.houses()) { // houses already assigned: place a late registrant right away
+          const t = await this.assign(b.cid, b.doc.barangay);
+          if (!t) return J({ error: "all houses full" }, 409);
+          b.doc.team = t;
+        }
       }
       await this.s.put({ ["p:" + b.cid]: b.doc, rev: (await this.rev()) + 1 });
       await this.broadcast({ live: false });
@@ -120,7 +191,7 @@ export class Session {
     if (u.pathname === "/clear") {
       const rev = (await this.rev()) + 1, epoch = (await this.epoch()) + 1, set = await this.settings();
       await this.s.deleteAll();
-      await this.s.put({ rev, epoch, cap: set.cap, houses: set.houses, brgys: set.barangays }); // settings survive Clear all
+      await this.s.put({ rev, epoch, cap: set.cap, brgys: set.barangays, mode: set.mode }); // cap, barangays, grouping survive; houses and registration reset
       await this.broadcast();
       return J({ ok: true });
     }
@@ -202,7 +273,8 @@ export default {
         if (!host) return J({ error: "forbidden" }, 403);
         const b = JSON.parse(await req.text()) || {}, out = {};
         if (b.cap != null) { const v = Number(b.cap); if (!Number.isInteger(v) || v < 1 || v > 40) return J({ error: "bad request" }, 400); out.cap = v; }
-        if (b.houses != null) { const v = Number(b.houses); if (!Number.isInteger(v) || v < 1 || v > TEAM_COUNT) return J({ error: "bad request" }, 400); out.houses = v; }
+        if (b.reg != null) { if (b.reg !== "open" && b.reg !== "closed") return J({ error: "bad request" }, 400); out.reg = b.reg; }
+        if (b.mode != null) { if (b.mode !== "mix" && b.mode !== "same") return J({ error: "bad request" }, 400); out.mode = b.mode; }
         if (b.barangays != null) {
           if (!Array.isArray(b.barangays) || b.barangays.length > MAX_BRGY) return J({ error: "bad request" }, 400);
           const list = [...new Set(b.barangays.map((x) => String(x).trim().slice(0, 60)).filter(Boolean))];
@@ -221,6 +293,7 @@ export default {
         if (!CID.test((b && b.cid) || "") || !doc) return J({ error: "bad request" }, 400);
         return call("/me", { method: "POST", body: JSON.stringify({ cid: b.cid, doc }) });
       }
+      if (path === "/assign" && req.method === "POST") return host ? call("/assign", { method: "POST" }) : J({ error: "forbidden" }, 403);
       if (path === "/responses" && req.method === "GET") return host ? call("/responses") : J({ error: "forbidden" }, 403);
       if (path === "/clear" && req.method === "POST") return host ? call("/clear", { method: "POST" }) : J({ error: "forbidden" }, 403);
     } catch (e) { return J({ error: "bad request" }, 400); }

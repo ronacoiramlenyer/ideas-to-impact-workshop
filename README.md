@@ -12,7 +12,8 @@ Presenter screen + participant phones, no accounts needed. Runs on your own Clou
 
 ## Use it
 - Presenter: open `ADDRESS/?host` and enter the passcode.
-- Participants: scan the QR code on the first slide or the Home page (it points to `ADDRESS`). They type a first name and tap their barangay; the app places them in a house at random, spreading each barangay across different houses. On Home under "Houses" you set the barangay list, the number of houses in play (the 9 Great Houses: Stark, Lannister, Targaryen, Baratheon, Greyjoy, Tyrell, Martell, Arryn, Tully), and the members per house (default 5). These settings survive Clear all.
+- Participants: scan the QR code on the first slide or the Home page (it points to `ADDRESS`). They type a first name and tap their barangay. That registers them; they wait for a house.
+- Houses (Home → "Registration and houses"): let everyone register, then tap **Assign houses**. The app opens just enough houses (people ÷ members per house, e.g. 60 ÷ 5 = 12) in this order: Stark, Lannister, Targaryen, Baratheon, Greyjoy, Tyrell, Martell, Arryn, Tully, Bolton, Frey, Tarly (then Mormont, Reed, Umber, Karstark, Clegane if needed). **Group houses by**: *Mix barangays* (each house mixes barangays) or *Same barangay* (each house is one barangay; 10 people → 2 houses of 5). **Close / Reopen registration** at any time; after houses are assigned, a late registrant is placed right away (a new house opens if all are full) and nobody already in a house is moved. Members per house, grouping, and the barangay list survive Clear all; houses and registration reset.
 - Before the real session: Home > "Clear all answers" (tap twice) to wipe test data. Phones that joined during testing are asked to join again.
 - Test once with your own phone before the day.
 
