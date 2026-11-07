@@ -13,6 +13,10 @@ const CID = /^[a-z0-9]{4,40}$/i;
 const PID = /^[a-z0-9]{1,20}@[a-z0-9]{1,20}$/i; // question id: base@time36
 const TEAM_COUNT = 17; // houses; names live in public/index.html (TEAMS)
 const TEAM_CAP = 5;    // default most members per house; the presenter can change it (1 to 40)
+const HOUSES = 12;     // default number of houses in play (first N of the 17); presenter can change it
+const MAX_BRGY = 12;   // most barangays the presenter can list
+// Participating barangays (South Caloocan). The presenter can edit this list on Home.
+const DEFAULT_BRGYS = ["Barangay 38", "Barangay 39", "Barangay 40", "Barangay 42", "Barangay 45", "Barangay 97"];
 
 export class Session {
   constructor(state) {
@@ -24,6 +28,30 @@ export class Session {
 
   async rev() { return (await this.s.get("rev")) ?? 0; }
   async cap() { return (await this.s.get("cap")) ?? TEAM_CAP; }
+  async houses() { return (await this.s.get("houses")) ?? HOUSES; }
+  async brgys() { return (await this.s.get("brgys")) ?? DEFAULT_BRGYS; }
+  async settings() { return { cap: await this.cap(), houses: await this.houses(), barangays: await this.brgys() }; }
+
+  // Random house for a new participant: only houses in play with room; prefer the houses with the
+  // fewest people from the same barangay (so every house mixes barangays), then the emptiest, then random.
+  async assign(cid, brgy) {
+    const cap = await this.cap(), n = await this.houses(), total = {}, same = {};
+    for (const [k, v] of await this.s.list({ prefix: "p:" })) {
+      if (k === "p:" + cid || !v || !v.team) continue;
+      total[v.team] = (total[v.team] || 0) + 1;
+      if (v.barangay === brgy) same[v.team] = (same[v.team] || 0) + 1;
+    }
+    let best = [], key = null;
+    for (let t = 1; t <= n; t++) {
+      if ((total[t] || 0) >= cap) continue;
+      const k = [same[t] || 0, total[t] || 0];
+      if (!key || k[0] < key[0] || (k[0] === key[0] && k[1] < key[1])) { key = k; best = [t]; }
+      else if (k[0] === key[0] && k[1] === key[1]) best.push(t);
+    }
+    if (!best.length) return 0;
+    const r = new Uint32Array(1); crypto.getRandomValues(r);
+    return best[r[0] % best.length];
+  }
   // Members per house, optionally leaving one participant out.
   async counts(exceptCid) {
     const c = {};
@@ -61,29 +89,38 @@ export class Session {
     if (u.pathname === "/live" && req.method === "GET") return J({ live: (await this.s.get("live")) ?? null, epoch: await this.epoch() });
     if (u.pathname === "/live") { await this.s.put("live", await req.json()); await this.broadcast({ rev: false }); return J({ ok: true }); }
     if (u.pathname === "/me" && req.method === "GET") return J((await this.s.get("p:" + u.searchParams.get("cid"))) ?? null);
-    if (u.pathname === "/teams") return J({ cap: await this.cap(), counts: await this.counts() });
-    if (u.pathname === "/cap") { const b = await req.json(); await this.s.put("cap", b.cap); return J({ ok: true, cap: b.cap }); }
+    if (u.pathname === "/teams") return J({ ...(await this.settings()), counts: await this.counts() });
+    if (u.pathname === "/settings") {
+      const b = await req.json();
+      if (b.cap != null) await this.s.put("cap", b.cap);
+      if (b.houses != null) await this.s.put("houses", b.houses);
+      if (b.barangays != null) await this.s.put("brgys", b.barangays);
+      return J({ ok: true, ...(await this.settings()) });
+    }
     if (u.pathname === "/me") {
       const b = await req.json();
-      // A house holds at most cap() people. Only checked when someone joins or changes house.
+      // The server picks the house. Once someone has a house it never changes from the phone.
       const before = await this.s.get("p:" + b.cid);
-      if (!before || before.team !== b.doc.team) {
-        const counts = await this.counts(b.cid);
-        const cap = await this.cap();
-        if ((counts[b.doc.team] || 0) >= cap) return J({ error: "team full", team: b.doc.team, cap }, 409);
+      if (before && before.team) b.doc.team = before.team;
+      else {
+        const list = await this.brgys();
+        if (list.length && !list.includes(b.doc.barangay)) return J({ error: "unknown barangay" }, 400);
+        const t = await this.assign(b.cid, b.doc.barangay);
+        if (!t) return J({ error: "all houses full" }, 409);
+        b.doc.team = t;
       }
       await this.s.put({ ["p:" + b.cid]: b.doc, rev: (await this.rev()) + 1 });
       await this.broadcast({ live: false });
-      return J({ ok: true });
+      return J({ ok: true, team: b.doc.team });
     }
     if (u.pathname === "/responses") {
       const m = await this.s.list({ prefix: "p:" });
       return J([...m].map(([k, v]) => ({ id: k.slice(2), data: v })));
     }
     if (u.pathname === "/clear") {
-      const rev = (await this.rev()) + 1, epoch = (await this.epoch()) + 1, cap = await this.cap();
+      const rev = (await this.rev()) + 1, epoch = (await this.epoch()) + 1, set = await this.settings();
       await this.s.deleteAll();
-      await this.s.put({ rev, epoch, cap }); // the house size setting survives Clear all
+      await this.s.put({ rev, epoch, cap: set.cap, houses: set.houses, brgys: set.barangays }); // settings survive Clear all
       await this.broadcast();
       return J({ ok: true });
     }
@@ -112,8 +149,9 @@ function cleanValue(v) {
 
 function cleanDoc(d) {
   if (!d || typeof d !== "object") return null;
-  const team = Number(d.team);
-  if (typeof d.name !== "string" || !d.name.trim() || !Number.isInteger(team) || team < 1 || team > TEAM_COUNT) return null;
+  const team = Number(d.team) || 0; // 0 = not placed yet; the server assigns the house
+  if (typeof d.name !== "string" || !d.name.trim() || !Number.isInteger(team) || team < 0 || team > TEAM_COUNT) return null;
+  if (typeof d.barangay !== "string" || !d.barangay.trim() || d.barangay.length > 60) return null;
   const answers = d.answers && typeof d.answers === "object" && !Array.isArray(d.answers) ? d.answers : {};
   const keys = Object.keys(answers);
   if (keys.length > 60) return null;
@@ -125,7 +163,7 @@ function cleanDoc(d) {
     if (v === null) return null;
     out[k] = { v, t: Number(a.t) || 0 };
   }
-  const doc = { name: d.name.trim().slice(0, 40), team, answers: out, joinedAt: Number(d.joinedAt) || Date.now() };
+  const doc = { name: d.name.trim().slice(0, 40), barangay: d.barangay.trim(), team, answers: out, joinedAt: Number(d.joinedAt) || Date.now() };
   return JSON.stringify(doc).length > MAX ? null : doc;
 }
 
@@ -160,11 +198,17 @@ export default {
         return call("/live", { method: "POST", body: t });
       }
       if (path === "/teams" && req.method === "GET") return call("/teams");
-      if (path === "/cap" && req.method === "POST") {
+      if ((path === "/settings" || path === "/cap") && req.method === "POST") {
         if (!host) return J({ error: "forbidden" }, 403);
-        const b = JSON.parse(await req.text()), cap = Number(b && b.cap);
-        if (!Number.isInteger(cap) || cap < 1 || cap > 40) return J({ error: "bad request" }, 400);
-        return call("/cap", { method: "POST", body: JSON.stringify({ cap }) });
+        const b = JSON.parse(await req.text()) || {}, out = {};
+        if (b.cap != null) { const v = Number(b.cap); if (!Number.isInteger(v) || v < 1 || v > 40) return J({ error: "bad request" }, 400); out.cap = v; }
+        if (b.houses != null) { const v = Number(b.houses); if (!Number.isInteger(v) || v < 1 || v > TEAM_COUNT) return J({ error: "bad request" }, 400); out.houses = v; }
+        if (b.barangays != null) {
+          if (!Array.isArray(b.barangays) || b.barangays.length > MAX_BRGY) return J({ error: "bad request" }, 400);
+          const list = [...new Set(b.barangays.map((x) => String(x).trim().slice(0, 60)).filter(Boolean))];
+          out.barangays = list;
+        }
+        return call("/settings", { method: "POST", body: JSON.stringify(out) });
       }
       if (path === "/me" && req.method === "GET") {
         const cid = url.searchParams.get("cid") || "";

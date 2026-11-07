@@ -212,6 +212,14 @@ table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)
 .bq .bo{font-size:13px;margin-top:2px}
 hr.sep{border:0;border-top:1px solid var(--line);margin:14px 0 4px}
 #askd summary{cursor:pointer}
+.brgys{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.brgys button{min-height:52px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:700;padding:6px 10px;overflow-wrap:anywhere}
+.brgys button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.card.myhouse{display:flex;flex-direction:column;gap:2px;text-align:center;border-color:var(--gold);background:var(--gold-soft)}
+.card.myhouse b{font-size:30px;color:var(--gold);line-height:1.15}
+.brgyed{margin-top:12px;max-width:520px}
+.brgyed textarea{min-height:120px}
+.hchip.off{opacity:.55;border-style:dashed}
 /* phone */
 .phone{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 .phone .brand{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
@@ -227,6 +235,61 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:14px 0 4px}
 .lab{font-size:14px;font-weight:600;margin:12px 0 6px;display:block}
 .sent{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:10px 12px;font-weight:600}
 .res{background:var(--surface2);border-radius:10px;padding:10px 12px;margin-top:10px}
+
+/* ===== Projector scale: everything on a slide sizes from one base (--s) that grows with the screen ===== */
+#app.deck{--s:clamp(18px,min(2.1vw,3.5vh),36px)}
+#app.deck .slide{font-size:var(--s);padding:clamp(16px,min(2.4vw,3.6vh),44px)}
+#app.deck .slide p,#app.deck .slide li{font-size:1em}
+#app.deck .slide h2{font-size:1.95em;margin:2px 0 .45em}
+#app.deck .slide .kick{font-size:.55em}
+#app.deck .formula{font-size:1.08em;padding:.5em .75em}
+#app.deck .box{font-size:.88em;padding:.55em .7em}
+#app.deck .grid2,#app.deck .grid3{gap:.45em}
+#app.deck table.t{font-size:.76em}
+#app.deck table.t input,#app.deck .slide input[type=number],#app.deck .slide input[type=text]{font-size:.85em;min-height:1.9em}
+#app.deck .slide .lab,#app.deck .form3 label{font-size:.62em}
+#app.deck .big{font-size:2.3em}
+#app.deck .pick button{font-size:.8em;min-width:2.2em;min-height:2.2em}
+#app.deck .mx{max-width:none;width:min(100%,19em);grid-template-columns:1.8em repeat(5,1fr);gap:.2em}
+#app.deck .mx div{font-size:.95em;min-height:1.9em}
+#app.deck .mx .h{font-size:.5em}
+#app.deck .bd{font-size:.95em}
+#app.deck .defs{gap:.45em}
+#app.deck .def{padding:.45em .65em}
+#app.deck .def>b{font-size:1.05em}
+#app.deck .def p{font-size:.84em}
+#app.deck .def .ex{font-size:.7em}
+#app.deck .xkey{font-size:.85em}
+#app.deck .lnode{font-size:.8em}
+#app.deck .lnode b{font-size:1.2em}
+#app.deck .larrow span{font-size:.5em}
+#app.deck .lback{font-size:.8em}
+#app.deck .hcol>b{font-size:.8em}
+#app.deck .hh{font-size:.68em}
+#app.deck .hh .hn{width:1.7em;height:1.7em}
+#app.deck .hfinal{font-size:1.35em}
+#app.deck .joinbox{font-size:.75em}
+#app.deck .tmr{font-size:clamp(22px,3.6vh,34px)}
+#app.deck .top .btn,#app.deck .top .btn.sm{font-size:clamp(14px,2.3vh,19px);min-height:clamp(34px,5.4vh,46px)}
+#app.deck .top .chip{font-size:clamp(13px,2.1vh,18px)}
+#app.deck .bottom .btn{font-size:clamp(17px,2.8vh,24px);min-height:clamp(44px,7vh,60px);padding:.3em 1.1em}
+#app.deck .dots i{width:12px;height:12px}
+#app.deck .pq{font-size:clamp(17px,2.7vh,24px)}
+#app.deck .bar{font-size:clamp(15px,2.4vh,21px)}
+#app.deck .note{font-size:clamp(15px,2.4vh,21px)}
+#app.deck .hint{font-size:clamp(14px,2.2vh,18px)}
+#app.deck .bq{font-size:clamp(14px,2.2vh,18px)}
+#app.deck .ptab{font-size:clamp(14px,2.2vh,18px)}
+@media (min-width:1000px){#app.deck .stage.withp{grid-template-columns:minmax(0,1fr) clamp(300px,26vw,440px)}#app.deck .stage.withp.collapsed{grid-template-columns:minmax(0,1fr) 48px}}
+
+/* With the questions panel open the slide is narrower: scale down a little so it still fits */
+@media (min-width:1000px){#app.deck .stage.withp:not(.collapsed) .slide{font-size:calc(var(--s)*.84)}}
+#app.deck table.t th,#app.deck table.t td{padding:.28em .5em;line-height:1.3}
+#app.deck .def p{font-size:.8em;line-height:1.35}
+/* Home on the projector */
+.home .seg h2{font-size:clamp(22px,2.4vw,30px)}
+.home .seg{font-size:clamp(15px,1.4vw,19px)}
+.home .hero p{font-size:clamp(17px,2vw,24px)}
 </style></head><body>
 <div id="app"><p class="muted">Loading…</p></div>
 <script>
@@ -498,7 +561,8 @@ function setLive(next){live=next;renderPanel();liveBusy++;
   chainL=chainL.then(function(){return api('/api/live',{key:KEY,body:next})}).then(function(){netOk(true)}).catch(function(){netOk(false);flash('Could not update the phones. Check the connection and try again.')}).then(function(){liveBusy--});return chainL}
 /* Answers are kept on the phone first. If sending fails, we retry when the connection comes back. */
 function saveMine(){var d=JSON.parse(JSON.stringify(mine));unsent=true;try{localStorage.setItem('iti_mine',JSON.stringify(d))}catch(e){}
-  chainM=chainM.then(function(){return api('/api/me',{body:{cid:uid,doc:d}})}).then(function(){savedTeam=d.team;if(JSON.stringify(mine)===JSON.stringify(d))unsent=false;netOk(true);return true}).catch(function(e){if(String(e.message)==='409'){unsent=false;var h=teamName(d.team);mine=Object.assign({},mine,{editProfile:true,team:savedTeam||0});draft={name:d.name,team:0};try{localStorage.removeItem('iti_mine')}catch(x){}loadTeams();flash('House '+h+' is full. Please pick another house.');return false}
+  chainM=chainM.then(function(){return api('/api/me',{body:{cid:uid,doc:d}})}).then(function(r){if(r&&r.team){d.team=r.team;savedTeam=r.team;if(mine&&mine.team!==r.team){mine=Object.assign({},mine,{team:r.team});try{localStorage.setItem('iti_mine',JSON.stringify(mine))}catch(x){}}}if(JSON.stringify(mine)===JSON.stringify(d))unsent=false;netOk(true);return true}).catch(function(e){if(String(e.message)==='409'){unsent=false;mine=Object.assign({},mine,{editProfile:true});draft={name:d.name,brgy:d.barangay};try{localStorage.removeItem('iti_mine')}catch(x){}flash('All houses are full right now. Please tell the facilitator, then tap Join again.');return false}
+    if(String(e.message)==='400'&&!savedTeam&&mine&&!mine.team){unsent=false;mine=Object.assign({},mine,{editProfile:true});draft={name:d.name};loadTeams();flash('Please pick your barangay again.');return false}
     if(String(e.message)==='400'){unsent=false;flash('That answer could not be saved.');return false}netOk(false);return false});
   return chainM.then(function(ok){if(mode==='phone')renderPhone();return ok})}
 function retryUnsent(){if(unsent&&mine&&mode==='phone'&&epochKnown)saveMine()}
@@ -510,14 +574,14 @@ function onEpoch(ep){if(typeof ep!=='number'||mode!=='phone')return;var had=null
   if(first)retryUnsent()}
 
 /* ---------- results ---------- */
-function answersFor(pid){var out=[];resp.forEach(function(r){var a=r.data.answers&&r.data.answers[pid];if(a)out.push({team:r.data.team,name:r.data.name,v:a.v,t:a.t||0})});return out.sort(function(a,b){return b.t-a.t})}
+function answersFor(pid){var out=[];resp.forEach(function(r){var a=r.data.answers&&r.data.answers[pid];if(a)out.push({team:r.data.team,name:r.data.name,brgy:r.data.barangay,v:a.v,t:a.t||0})});return out.sort(function(a,b){return b.t-a.t})}
 function summarize(p){var A=answersFor(p.id),res={n:A.length};
   if(p.type==='choice'){res.counts=(p.options||[]).map(function(_,i){return A.filter(function(a){return a.v===i}).length});if(p.correct!=null)res.correct=p.correct}
   if(p.type==='number'&&p.correct!=null){res.correct=p.correct;res.right=A.filter(function(a){return Number(a.v)===p.correct}).length}
   if(p.type==='scale'&&A.length){res.avg=Math.round(A.reduce(function(s,a){return s+Number(a.v)},0)/A.length*10)/10}
   return res}
 function resultsHTML(p){var A=answersFor(p.id);if(!A.length)return '<p class="muted">No answers yet.</p>';
-  var who=function(a){return esc(showNames&&a.name?a.name+' · ':'')+'House '+esc(teamName(a.team))};
+  var who=function(a){return esc(showNames&&a.name?a.name+(a.brgy?' · '+a.brgy:'')+' · ':'')+'House '+esc(teamName(a.team))};
   if(p.type==='text')return '<div class="wall">'+A.map(function(a){return '<div class="note">'+esc(a.v)+'<small>'+who(a)+'</small></div>'}).join('')+'</div>';
   if(p.type==='choice'){var s=summarize(p),max=Math.max.apply(null,s.counts.concat([1]));return p.options.map(function(o,i){return '<div class="bar'+(p.correct===i?' right':'')+'"><span>'+esc(o)+(p.correct===i?' ✓':'')+'</span><b>'+s.counts[i]+'</b><div class="tr"><i style="width:'+(s.counts[i]/max*100)+'%"></i></div></div>'}).join('')}
   if(p.type==='number'){var r='<div class="row">'+A.map(function(a){return '<span class="chip'+(p.correct!=null&&Number(a.v)===p.correct?' ok':'')+'">'+esc(a.v)+'</span>'}).join('')+'</div>';if(p.correct!=null)r+='<p>Correct: <b>'+p.correct+'</b>. '+summarize(p).right+' of '+A.length+' got it.</p>';return r}
@@ -532,13 +596,17 @@ function fmt(sec){var a=Math.abs(sec);return (sec<0?'-':'')+Math.floor(a/60)+':'
 function statusChip(){return '<span class="chip netchip '+(net.ok?(net.ws?'ok':''):'gold')+'">'+(net.ok?(net.ws?'Live':'Live (slow mode)'):'Reconnecting…')+'</span>'}
 function renderPresenter(){
   if(view.t==='home'){
-    app.className='';
+    app.className='';if(isOwner)setTimeout(function(){loadTeams()},0);
     var tot=SEGS.reduce(function(a,s){return a+s.min},0);
     app.innerHTML='<div class="home"><div class="hero"><div class="k">SK Leadership Session · South Caloocan</div><h1>From Ideas to Impact</h1><p>Planning Responsibly, Budgeting Transparently, and Managing Risks Proactively. '+tot+' minutes.</p></div>'
     +'<div class="strip">'+SEGS.map(function(s){return '<i style="flex:'+s.min+'" title="'+esc(s.n)+'"></i>'}).join('')+'</div>'
     +'<div class="segs">'+SEGS.map(function(s,i){var q=s.slides.filter(function(x){return x.prompt}).length;return '<button class="seg" data-act="open" data-s="'+i+'"><span class="n">'+(i+1)+' · '+s.min+' min</span><h2>'+esc(s.n)+'</h2><span class="muted">'+esc(s.tag)+'</span><span class="m"><span class="chip">'+s.slides.length+' slide'+(s.slides.length===1?'':'s')+'</span>'+(q?'<span class="chip gold">'+q+' phone question'+(q>1?'s':'')+'</span>':'')+'</span></button>'}).join('')+'</div>'
-    +'<div class="join">'+qrBlock('qrHome','150px')+'<div class="jt"><div class="row"><span id="jn" class="chip">'+resp.length+' joined</span>'+statusChip()+'</div><span class="muted">Participants scan the code or open <b>'+esc(JOIN_LABEL)+'</b> on their phone, type a first name, tap a house, and wait for your questions.</span></div></div>'
-    +'<div class="card houses"><div class="ph"><b>Houses</b><span class="muted">Members per house</span><span class="stepper"><button class="btn sm" data-act="capdn" aria-label="Fewer members per house">−</button><b id="capv">'+teamInfo.cap+'</b><button class="btn sm" data-act="capup" aria-label="More members per house">+</button></span><span class="muted" id="capnote"></span></div><div class="hchips" id="hchips"></div></div>'
+    +'<div class="join">'+qrBlock('qrHome','150px')+'<div class="jt"><div class="row"><span id="jn" class="chip">'+resp.length+' joined</span>'+statusChip()+'</div><span class="muted">Participants scan the code or open <b>'+esc(JOIN_LABEL)+'</b> on their phone, type a first name, tap their barangay, and get a house at random.</span></div></div>'
+    +'<div class="card houses"><div class="ph"><b>Houses</b>'
+    +'<span class="muted">Houses in play</span><span class="stepper"><button class="btn sm" data-act="hsdn" aria-label="Fewer houses">−</button><b id="hsv">'+teamInfo.houses+'</b><button class="btn sm" data-act="hsup" aria-label="More houses">+</button></span>'
+    +'<span class="muted">Members per house</span><span class="stepper"><button class="btn sm" data-act="capdn" aria-label="Fewer members per house">−</button><b id="capv">'+teamInfo.cap+'</b><button class="btn sm" data-act="capup" aria-label="More members per house">+</button></span><span class="muted" id="capnote"></span></div>'
+    +'<p class="muted" style="margin:6px 0 0">Phones pick their barangay; the app places each person in a house at random, mixing barangays.</p><div class="hchips" id="hchips"></div>'
+    +'<div class="brgyed"><label class="lab" for="brgyta">Barangays (one per line)</label><textarea id="brgyta" rows="6" placeholder="Type the 6 barangay names, one per line">'+esc((teamInfo.barangays||[]).join('\n'))+'</textarea><div class="row"><button class="btn sm pri" data-act="brgysave">Save barangays</button><span class="muted" id="bcounts"></span></div></div></div>'
     +'<div class="tools"><button class="btn" data-act="phone">Preview phone view</button><button class="btn" data-act="ask">Ask a question now</button><button class="btn ghost" data-act="clear">'+(clearArm?'Tap again to delete all answers':'Clear all answers')+'</button></div></div>';
     updJoined();return}
   var seg=SEGS[view.s],sl=seg.slides[view.i],T=timers[seg.id];
@@ -552,12 +620,17 @@ function renderPresenter(){
 function askForm(){return '<label class="lab">Or type your own question</label><input type="text" id="aq" placeholder="Type a question for the phones"><label class="lab">Answer type</label><select id="at"><option value="text">Short text</option><option value="choice">Choice</option><option value="number">Number</option><option value="scale">Rating 1 to 5</option><option value="risk">Risk (description + Occurrence + Impact)</option></select><div id="aoWrap" style="display:none"><label class="lab">Choices, separated by commas</label><input type="text" id="ao" placeholder="Yes, No, Not sure"></div><div class="row"><button class="btn pri sm" data-act="askgo">Push to phones</button></div>'}
 function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';updHouses()}
 /* Home: members in each house, and the presenter's house size setting. */
-function updHouses(){var el=$('#hchips');if(!el)return;var c={};resp.forEach(function(r){var t=r.data&&r.data.team;if(t)c[t]=(c[t]||0)+1});var cap=teamInfo.cap;
-  el.innerHTML=TEAMS.map(function(t){var n=c[t.id]||0;return '<span class="hchip'+(n>=cap?' full':n?' some':'')+'">'+esc(t.name)+' <b>'+n+'/'+cap+'</b></span>'}).join('');
-  var v=$('#capv');if(v)v.textContent=cap;var room=TEAMS.length*cap,note=$('#capnote');if(note)note.textContent='Room for '+room+' people'+(resp.length>room?'. More people joined than there is room for: raise the limit.':'.')}
-var capBusy=false;
-function setCap(n){n=Math.max(1,Math.min(40,n));if(n===teamInfo.cap||capBusy)return;var old=teamInfo.cap;teamInfo.cap=n;updHouses();capBusy=true;
-  api('/api/cap',{key:KEY,body:{cap:n}}).then(function(){netOk(true);flash('Up to '+n+' per house. Phones update in a few seconds.')}).catch(function(){teamInfo.cap=old;updHouses();flash('Could not change the house size. Check the connection.')}).then(function(){capBusy=false})}
+function updHouses(){var el=$('#hchips');if(!el)return;var c={},bc={};resp.forEach(function(r){var t=r.data&&r.data.team,b=r.data&&r.data.barangay;if(t)c[t]=(c[t]||0)+1;if(b)bc[b]=(bc[b]||0)+1});var cap=teamInfo.cap,n=teamInfo.houses;
+  el.innerHTML=TEAMS.filter(function(t){return t.id<=n||c[t.id]}).map(function(t){var k=c[t.id]||0;return '<span class="hchip'+(t.id>n?' off':k>=cap?' full':k?' some':'')+'">'+esc(t.name)+' <b>'+k+'/'+cap+'</b></span>'}).join('');
+  var v=$('#capv');if(v)v.textContent=cap;var hv=$('#hsv');if(hv)hv.textContent=n;var room=n*cap,note=$('#capnote');if(note)note.textContent='Room for '+room+' people'+(resp.length>=room?'. Full: add a house or raise the size.':'.');
+  var bl=$('#bcounts');if(bl){var list=teamInfo.barangays||[];bl.textContent=list.length?'Joined so far: '+list.map(function(b){return b+': '+(bc[b]||0)}).join(' · '):'No barangays yet. Until you add them, phones type their barangay.'}
+  var ta=$('#brgyta');if(ta&&document.activeElement!==ta&&!ta.dataset.dirty)ta.value=(teamInfo.barangays||[]).join('\n')}
+var setBusy=false;
+function saveSettings(ch,msg){if(setBusy)return;var old=JSON.parse(JSON.stringify(teamInfo));Object.assign(teamInfo,ch);updHouses();setBusy=true;
+  api('/api/settings',{key:KEY,body:ch}).then(function(r){netOk(true);if(r)Object.assign(teamInfo,{cap:r.cap,houses:r.houses,barangays:r.barangays});var ta=$('#brgyta');if(ta)delete ta.dataset.dirty;updHouses();flash(msg)})
+  .catch(function(){teamInfo=old;updHouses();flash('Could not save. Check the connection.')}).then(function(){setBusy=false})}
+function setCap(n){n=Math.max(1,Math.min(40,n));if(n!==teamInfo.cap)saveSettings({cap:n},'Up to '+n+' per house.')}
+function setHouses(n){n=Math.max(1,Math.min(TEAMS.length,n));if(n!==teamInfo.houses)saveSettings({houses:n},n+' houses in play: '+TEAMS.slice(0,n).map(function(t){return t.name}).join(', ')+'.')}
 function renderPanel(){var el=$('#plive');if(!el)return;drawBank();var sl=curSlide(),sp=sl&&sl.prompt,lp=live&&live.prompt;
   var h='<div class="card"><div class="ph"><b>Phones</b><span class="chip">'+resp.length+' joined</span>'+statusChip()+'</div>';
   if(sl&&sl.habitCheck)h+='<div class="hint">Habit check: ask the room which habit this is.</div>';
@@ -583,9 +656,9 @@ function push(p,seg){var o={id:p.base+'@'+Date.now().toString(36),base:p.base,ty
 /* Houses: 9 Great Houses, then 8 other houses. The id is what is stored (1 to 17). */
 var TEAMS=['Stark','Lannister','Targaryen','Baratheon','Greyjoy','Tyrell','Martell','Arryn','Tully','Bolton','Frey','Tarly','Mormont','Reed','Umber','Karstark','Clegane'].map(function(n,i){return {id:i+1,name:n,g:i<9?1:2}});
 function teamName(id){var t=TEAMS[Number(id)-1];return t?t.name:'?'}
-var teamInfo={cap:5,counts:{}},teamTimer=null,savedTeam=0; /* savedTeam: the house the server has confirmed for this phone */
-function loadTeams(){return api('/api/teams').then(function(r){if(r&&r.counts){var ch=JSON.stringify(r)!==JSON.stringify(teamInfo);teamInfo=r;if(ch&&mode==='phone'&&(!mine||mine.editProfile))renderPhone()}}).catch(function(){})}
-function watchTeams(){if(teamTimer)return;loadTeams();teamTimer=setInterval(function(){if(!document.hidden)loadTeams()},4000)}
+var teamInfo={cap:5,houses:12,barangays:[],counts:{}},teamTimer=null,savedTeam=0; /* savedTeam: the house the server has confirmed for this phone */
+function loadTeams(){return api('/api/teams').then(function(r){if(r&&r.counts){var ch=JSON.stringify(r.barangays)!==JSON.stringify(teamInfo.barangays);teamInfo=r;if(ch&&mode==='phone'&&(!mine||mine.editProfile))renderPhone();if(mode==='presenter')updHouses()}}).catch(function(){})}
+function watchTeams(){if(teamTimer)return;loadTeams();teamTimer=setInterval(function(){if(!document.hidden)loadTeams()},8000)} /* only to pick up the barangay list */
 function stopTeams(){clearInterval(teamTimer);teamTimer=null}
 function renderPhone(){
   if(mode!=='phone')return;
@@ -597,14 +670,14 @@ function renderPhoneInner(){
   if(isOwner)h+='<div><button class="btn sm" data-act="topres">← Presenter view</button></div>';
   if(!uid){h+='<div class="card"><b>Sign in to join.</b><p class="muted">Please reload this page.</p></div></div>';app.innerHTML=h;return}
   if(!mine||mine.editProfile){
-    var nm=(draft.name!=null?draft.name:(mine&&mine.name)||''),tm=draft.team!=null?draft.team:(mine&&mine.team)||0;
-    var cap=teamInfo.cap,counts=teamInfo.counts||{};
-    function tb(t){var n=counts[t.id]||0,own=savedTeam===t.id?1:0,full=n-own>=cap&&tm!==t.id;
-      return '<button data-act="team" data-t="'+t.id+'" class="'+(tm===t.id?'on':'')+(full?' full':'')+'"'+(full?' disabled aria-disabled="true"':'')+'><span>'+esc(t.name)+'</span><small>'+(full?'Full':n+'/'+cap)+'</small></button>'}
-    h+='<div class="card"><b>Join the session</b><label class="lab">Your name</label><input type="text" id="jname" maxlength="40" value="'+esc(nm)+'" placeholder="First name"><label class="lab">Your house <span class="muted" style="font-weight:400">(up to '+cap+' per house)</span></label>'
-      +'<div class="teams">'+TEAMS.map(tb).join('')+'</div>'
+    var nm=draft.name!=null?draft.name:(mine&&mine.name)||'',bg=draft.brgy!=null?draft.brgy:(mine&&mine.barangay)||'',list=teamInfo.barangays||[];
+    h+='<div class="card"><b>Join the session</b><label class="lab" for="jname">Your first name</label><input type="text" id="jname" maxlength="40" value="'+esc(nm)+'" placeholder="First name" autocomplete="given-name">'
+      +'<label class="lab">Your barangay</label>'
+      +(list.length?'<div class="brgys">'+list.map(function(b,i){return '<button data-act="brgy" data-b="'+i+'" class="'+(bg===b?'on':'')+'">'+esc(b)+'</button>'}).join('')+'</div>'
+        :'<input type="text" id="jbrgy" maxlength="60" value="'+esc(bg)+'" placeholder="Barangay name">')
+      +(mine&&mine.team?'<p class="muted">Your house stays the same: <b>House '+esc(teamName(mine.team))+'</b>.</p>':'<p class="muted">You will be placed in a house at random, together with people from other barangays.</p>')
       +'<div class="row"><button class="btn pri" data-act="joingo">Join</button></div></div></div>';app.innerHTML=h;watchTeams();return}
-  stopTeams();h+='<div class="muted">'+esc(mine.name)+' · House '+esc(teamName(mine.team))+' <button class="btn sm ghost" data-act="editprof">Change</button></div>';
+  stopTeams();h+='<div class="card myhouse">'+(mine.team?'<span class="muted">Your house</span><b>House '+esc(teamName(mine.team))+'</b>':'<span class="muted">Finding your house…</span>')+'<span class="muted">'+esc(mine.name)+' · '+esc(mine.barangay||'')+' <button class="btn sm ghost" data-act="editprof">Change</button></span></div>';
   var lp=live&&live.prompt;
   if(!lp){h+='<div class="card"><b>You are in.</b><p class="muted">Wait for the next question. It will appear here by itself.</p></div></div>';app.innerHTML=h;return}
   var open=live.open!==false,mineA=mine.answers&&mine.answers[lp.id];
@@ -646,6 +719,7 @@ document.addEventListener('keydown',function(e){if(mode!=='presenter'||view.t!==
 app.addEventListener('input',function(e){var t=e.target;
   if(t.id==='din'){draft.text=t.value;if(live&&live.prompt)draft.pid=live.prompt.id;saveDraft()}
   else if(t.id==='jname')draft.name=t.value;
+  else if(t.id==='brgyta'){t.dataset.dirty='1'}
   else if(t.id==='bseg'){bankSeg=t.value;drawBank()}
   else if(t.id==='at'){$('#aoWrap').style.display=t.value==='choice'?'block':'none'}});
 app.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b||b.tagName==='INPUT')return;act(b.getAttribute('data-act'),b.dataset)});
@@ -668,6 +742,9 @@ function act(a,d){
   else if(a==='bankgo'){var bq=BANK[+d.b];if(bq){used[bq.base]=1;saveUsed();push(bq,SEGS.filter(function(x){return x.id===bq.seg})[0].n);flash('Sent to phones.')}}
   else if(a==='bankused'){showUsed=!showUsed;drawBank()}
   else if(a==='panel')togglePanel();
+  else if(a==='hsup')setHouses(teamInfo.houses+1);
+  else if(a==='hsdn')setHouses(teamInfo.houses-1);
+  else if(a==='brgysave'){var list=($('#brgyta').value||'').split('\n').map(function(x){return x.trim()}).filter(Boolean);if(list.length>12)return flash('Up to 12 barangays.');saveSettings({barangays:list},list.length?'Saved '+list.length+' barangay'+(list.length===1?'':'s')+'. Phones update in a few seconds.':'Barangay list cleared.')}
   else if(a==='capup')setCap(teamInfo.cap+1);
   else if(a==='capdn')setCap(teamInfo.cap-1);
   else if(a==='ask'){go(0,0);setTimeout(function(){var d=$('#askd');if(d)d.open=true},0)}
@@ -675,10 +752,10 @@ function act(a,d){
   else if(a==='topres'){mode='presenter';renderPresenter()}
   else if(a==='clear'){if(!clearArm){clearArm=true;renderPresenter();return}clearArm=false;clearAll()}
   /* phone */
-  else if(a==='team'){draft.team=+d.t;var n=$('#jname');if(n)draft.name=n.value;renderPhone()}
-  else if(a==='joingo'){var nm=($('#jname').value||'').trim();if(!nm)return flash('Enter your name.');if(!draft.team)return flash('Pick your house.');
-    mine={name:nm,team:draft.team,answers:(mine&&mine.answers)||{},joinedAt:(mine&&mine.joinedAt)||Date.now()};draft={name:nm,team:mine.team};renderPhone();saveMine()}
-  else if(a==='editprof'){mine=Object.assign({},mine,{editProfile:true});draft={name:mine.name,team:mine.team};renderPhone()}
+  else if(a==='brgy'){draft.brgy=(teamInfo.barangays||[])[+d.b]||'';var n=$('#jname');if(n)draft.name=n.value;renderPhone()}
+  else if(a==='joingo'){var nm=($('#jname').value||'').trim();if(!nm)return flash('Enter your first name.');var jb=$('#jbrgy'),bg=jb?(jb.value||'').trim():(draft.brgy||'');if(!bg)return flash('Pick your barangay.');
+    mine={name:nm,barangay:bg,team:(mine&&mine.team)||0,answers:(mine&&mine.answers)||{},joinedAt:(mine&&mine.joinedAt)||Date.now()};draft={name:nm,brgy:bg};renderPhone();saveMine()}
+  else if(a==='editprof'){mine=Object.assign({},mine,{editProfile:true});draft={name:mine.name,brgy:mine.barangay};renderPhone()}
   else if(a==='pick'){draft.v=+d.n;keepText();saveDraft();renderPhone()}
   else if(a==='occ'){draft.occ=+d.n;keepText();saveDraft();renderPhone()}
   else if(a==='imp'){draft.imp=+d.n;keepText();saveDraft();renderPhone()}
@@ -732,7 +809,7 @@ function pollOnce(){if(document.hidden&&mode==='phone')return;
 function startFallback(){if(fbTimer)return;pollOnce();fbTimer=setInterval(function(){if(!net.ws)pollOnce()},5000)}
 function stopFallback(){clearInterval(fbTimer);fbTimer=null}
 function startNet(){if(netStarted)return;netStarted=true;connect();
-  if(isOwner){loadResp();respTimer=setInterval(loadResp,20000)} /* safety refresh, ~360 requests per 2 h */
+  if(isOwner){loadResp();respTimer=setInterval(function(){loadResp();loadTeams()},20000)} /* safety refresh, ~360 requests per 2 h */
   window.addEventListener('offline',function(){dropSocket();netOk(false);startFallback()});
   window.addEventListener('online',function(){wsTry=0;clearTimeout(wsTimer);connect();pollOnce()});
   document.addEventListener('visibilitychange',function(){if(document.hidden)return;if(!sock){wsTry=0;connect()}pollOnce();retryUnsent()})}
