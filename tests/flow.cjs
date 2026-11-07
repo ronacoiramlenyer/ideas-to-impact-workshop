@@ -39,10 +39,10 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     assert.equal(r.status, 200); ok('host clear all');
     const post = (path, body, key) => fetch(BASE + path, { method: 'POST', headers: Object.assign({ 'content-type': 'application/json' }, key ? { 'x-key': KEY } : {}), body: JSON.stringify(body) });
     const BRGYS = ['Brgy 1', 'Brgy 2', 'Brgy 3', 'Brgy 4', 'Brgy 5', 'Brgy 6'];
-    r = await post('/api/settings', { houses: 12, cap: 5, barangays: BRGYS });
+    r = await post('/api/settings', { houses: 9, cap: 5, barangays: BRGYS });
     assert.equal(r.status, 403);
-    r = await post('/api/settings', { houses: 12, cap: 5, barangays: BRGYS }, true);
-    assert.equal(r.status, 200); ok('host sets 6 barangays, 12 houses, 5 per house (non-host refused)');
+    r = await post('/api/settings', { houses: 9, cap: 5, barangays: BRGYS }, true);
+    assert.equal(r.status, 200); ok('host sets 6 barangays, 9 houses, 5 per house (non-host refused)');
 
     // Host unlock
     await host.goto(BASE + '/?host');
@@ -162,12 +162,12 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
 
     // Clear all (two taps): wipes people, keeps the settings; phones go back to the join screen
     await host.click('[data-act=home]');
-    await host.locator('#hsv', { hasText: /^12$/ }).waitFor({ timeout: 8000 });
+    await host.locator('#hsv', { hasText: /^9$/ }).waitFor({ timeout: 8000 });
     await host.click('[data-act=clear]');
     await host.click('[data-act=clear]');
     await host.locator('#jn', { hasText: '0 joined' }).waitFor({ timeout: 8000 });
     r = await fetch(BASE + '/api/teams'); const after = await r.json();
-    assert.equal(after.cap, 5); assert.equal(after.houses, 12); assert.deepEqual(after.barangays, BRGYS); assert.deepEqual(after.counts, {});
+    assert.equal(after.cap, 5); assert.equal(after.houses, 9); assert.deepEqual(after.barangays, BRGYS); assert.deepEqual(after.counts, {});
     await phone.locator('#jname').waitFor({ timeout: 10000 }); ok('clear all wipes people, keeps settings, phones re-join');
 
     // Random assignment mixes barangays: 2 houses x 3 people, 6 people from 3 barangays
@@ -197,7 +197,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await phone.locator('.myhouse b', { hasText: 'House Targaryen' }).waitFor({ timeout: 8000 }); ok('phone told all houses are full; host adds a house; phone placed in it');
 
     // Restore and clean up
-    r = await post('/api/settings', { houses: 12, cap: 5 }, true); assert.equal(r.status, 200);
+    r = await post('/api/settings', { houses: 9, cap: 5 }, true); assert.equal(r.status, 200);
     r = await post('/api/clear', {}, true); assert.equal(r.status, 200);
 
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('; ')); ok('no page errors');

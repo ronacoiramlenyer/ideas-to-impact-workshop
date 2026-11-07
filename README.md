@@ -12,7 +12,7 @@ Presenter screen + participant phones, no accounts needed. Runs on your own Clou
 
 ## Use it
 - Presenter: open `ADDRESS/?host` and enter the passcode.
-- Participants: scan the QR code on the first slide or the Home page (it points to `ADDRESS`). They type a first name and tap their barangay; the app places them in a house at random, spreading each barangay across different houses. On Home under "Houses" you set the barangay list, the number of houses in play (default 12 of the 17), and the members per house (default 5). These settings survive Clear all.
+- Participants: scan the QR code on the first slide or the Home page (it points to `ADDRESS`). They type a first name and tap their barangay; the app places them in a house at random, spreading each barangay across different houses. On Home under "Houses" you set the barangay list, the number of houses in play (the 9 Great Houses: Stark, Lannister, Targaryen, Baratheon, Greyjoy, Tyrell, Martell, Arryn, Tully), and the members per house (default 5). These settings survive Clear all.
 - Before the real session: Home > "Clear all answers" (tap twice) to wipe test data. Phones that joined during testing are asked to join again.
 - Test once with your own phone before the day.
 

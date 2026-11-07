@@ -622,7 +622,7 @@ function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';
 /* Home: members in each house, and the presenter's house size setting. */
 function updHouses(){var el=$('#hchips');if(!el)return;var c={},bc={};resp.forEach(function(r){var t=r.data&&r.data.team,b=r.data&&r.data.barangay;if(t)c[t]=(c[t]||0)+1;if(b)bc[b]=(bc[b]||0)+1});var cap=teamInfo.cap,n=teamInfo.houses;
   el.innerHTML=TEAMS.filter(function(t){return t.id<=n||c[t.id]}).map(function(t){var k=c[t.id]||0;return '<span class="hchip'+(t.id>n?' off':k>=cap?' full':k?' some':'')+'">'+esc(t.name)+' <b>'+k+'/'+cap+'</b></span>'}).join('');
-  var v=$('#capv');if(v)v.textContent=cap;var hv=$('#hsv');if(hv)hv.textContent=n;var room=n*cap,note=$('#capnote');if(note)note.textContent='Room for '+room+' people'+(resp.length>=room?'. Full: add a house or raise the size.':'.');
+  var v=$('#capv');if(v)v.textContent=cap;var hv=$('#hsv');if(hv)hv.textContent=n;var room=n*cap,note=$('#capnote');if(note)note.textContent='Room for '+room+' people'+(resp.length>=room?'. Full: raise members per house.':room<60?'. Expecting about 60? Set 7 per house.':'.');
   var bl=$('#bcounts');if(bl){var list=teamInfo.barangays||[];bl.textContent=list.length?'Joined so far: '+list.map(function(b){return b+': '+(bc[b]||0)}).join(' · '):'No barangays yet. Until you add them, phones type their barangay.'}
   var ta=$('#brgyta');if(ta&&document.activeElement!==ta&&!ta.dataset.dirty)ta.value=(teamInfo.barangays||[]).join('\n')}
 var setBusy=false;
@@ -653,10 +653,10 @@ setInterval(function(){var any=false;SEGS.forEach(function(s){if(timers[s.id].ru
 function push(p,seg){var o={id:p.base+'@'+Date.now().toString(36),base:p.base,type:p.type,q:p.q,seg:seg||''};if(p.options)o.options=p.options;if(p.correct!=null)o.correct=p.correct;setLive({prompt:o,open:true,result:null,ts:Date.now()})}
 
 /* ---------- phone ---------- */
-/* Houses: 9 Great Houses, then 8 other houses. The id is what is stored (1 to 17). */
-var TEAMS=['Stark','Lannister','Targaryen','Baratheon','Greyjoy','Tyrell','Martell','Arryn','Tully','Bolton','Frey','Tarly','Mormont','Reed','Umber','Karstark','Clegane'].map(function(n,i){return {id:i+1,name:n,g:i<9?1:2}});
+/* The 9 Great Houses. The id is what is stored (1 to 9). */
+var TEAMS=['Stark','Lannister','Targaryen','Baratheon','Greyjoy','Tyrell','Martell','Arryn','Tully'].map(function(n,i){return {id:i+1,name:n}});
 function teamName(id){var t=TEAMS[Number(id)-1];return t?t.name:'?'}
-var teamInfo={cap:5,houses:12,barangays:[],counts:{}},teamTimer=null,savedTeam=0; /* savedTeam: the house the server has confirmed for this phone */
+var teamInfo={cap:5,houses:9,barangays:[],counts:{}},teamTimer=null,savedTeam=0; /* savedTeam: the house the server has confirmed for this phone */
 function loadTeams(){return api('/api/teams').then(function(r){if(r&&r.counts){var ch=JSON.stringify(r.barangays)!==JSON.stringify(teamInfo.barangays);teamInfo=r;if(ch&&mode==='phone'&&(!mine||mine.editProfile))renderPhone();if(mode==='presenter')updHouses()}}).catch(function(){})}
 function watchTeams(){if(teamTimer)return;loadTeams();teamTimer=setInterval(function(){if(!document.hidden)loadTeams()},8000)} /* only to pick up the barangay list */
 function stopTeams(){clearInterval(teamTimer);teamTimer=null}

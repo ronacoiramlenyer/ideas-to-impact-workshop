@@ -11,9 +11,9 @@ const J = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: 
 const MAX = 8000;
 const CID = /^[a-z0-9]{4,40}$/i;
 const PID = /^[a-z0-9]{1,20}@[a-z0-9]{1,20}$/i; // question id: base@time36
-const TEAM_COUNT = 17; // houses; names live in public/index.html (TEAMS)
+const TEAM_COUNT = 9; // the 9 Great Houses; names live in public/index.html (TEAMS)
 const TEAM_CAP = 5;    // default most members per house; the presenter can change it (1 to 40)
-const HOUSES = 12;     // default number of houses in play (first N of the 17); presenter can change it
+const HOUSES = 9;      // default number of houses in play; presenter can lower it
 const MAX_BRGY = 12;   // most barangays the presenter can list
 // Participating barangays (South Caloocan). The presenter can edit this list on Home.
 const DEFAULT_BRGYS = ["Barangay 38", "Barangay 39", "Barangay 40", "Barangay 42", "Barangay 45", "Barangay 97"];
@@ -28,7 +28,7 @@ export class Session {
 
   async rev() { return (await this.s.get("rev")) ?? 0; }
   async cap() { return (await this.s.get("cap")) ?? TEAM_CAP; }
-  async houses() { return (await this.s.get("houses")) ?? HOUSES; }
+  async houses() { return Math.min((await this.s.get("houses")) ?? HOUSES, TEAM_COUNT); }
   async brgys() { return (await this.s.get("brgys")) ?? DEFAULT_BRGYS; }
   async settings() { return { cap: await this.cap(), houses: await this.houses(), barangays: await this.brgys() }; }
 
