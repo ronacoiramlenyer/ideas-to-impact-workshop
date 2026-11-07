@@ -48,7 +48,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await host.goto(BASE + '/?host');
     await host.fill('#pk', 'wrong-pass');
     await host.click('[data-act=unlock]');
-    await host.getByText('That passcode did not work.').waitFor(); ok('wrong passcode rejected');
+    await host.getByText('That passcode did not work').waitFor(); ok('wrong passcode rejected');
     await host.fill('#pk', KEY);
     await host.click('[data-act=unlock]');
     await host.getByRole('heading', { name: 'From Ideas to Impact' }).waitFor();

@@ -222,6 +222,9 @@ table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)
 .wcheck{background:var(--ok-soft);border-radius:12px;padding:.5em .7em;font-size:.75em;line-height:1.35}
 .wcheck b{display:block;color:var(--ok)}
 @media (max-width:800px){.work{grid-template-columns:1fr}}
+.offline .houses,.offline .join .jt,.offline [data-act=clear],.offline [data-act=phone]{display:none}
+.offbox{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.offbox p{margin:4px 0 10px}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -383,8 +386,11 @@ var qrSVG=(function(){
     var Q=4,W=S+Q*2,path='';for(y=0;y<S;y++)for(x=0;x<S;x++)if(M[y][x])path+='M'+(x+Q)+' '+(y+Q)+'h1v1h-1z';
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+W+'" shape-rendering="crispEdges" role="img" aria-label="QR code for '+text.replace(/[&<>"]/g,'')+'"><rect width="'+W+'" height="'+W+'" fill="#fff"/><path d="'+path+'" fill="#000"/></svg>'};
 })();
-var JOIN_URL=location.origin+'/';
-var JOIN_LABEL=location.host;
+/* Opened from a saved file (Plan B, no internet): the QR still points to the live site. */
+var LIVE_URL='https://ideas-to-impact.learneasytoday.workers.dev/';
+var JOIN_URL=location.protocol==='file:'?LIVE_URL:location.origin+'/';
+var JOIN_LABEL=JOIN_URL.replace(/^https?:\/\//,'').replace(/\/$/,'');
+var offline=false;
 function qrBlock(id,size){return '<div class="qr" id="'+id+'" style="--qs:'+size+'" data-act="qrzoom" role="button" tabindex="0" aria-label="Enlarge the QR code" title="Click to enlarge">'+qrSVG(JOIN_URL)+'<div class="qrl">'+esc(JOIN_LABEL)+'</div></div>'}
 /* Click a QR code to show it full screen; click again (or press Esc) to return it to size. */
 var qrBig=null;
@@ -662,7 +668,7 @@ function resultsHTML(p){var A=answersFor(p.id);if(!A.length)return '<p class="mu
 function curSlide(){return view.t==='slide'?SEGS[view.s].slides[view.i]:null}
 function go(s,i){cleanup.forEach(function(f){f()});cleanup=[];view=s==null?{t:'home'}:{t:'slide',s:s,i:i};try{sessionStorage.setItem('iti_view',JSON.stringify(view))}catch(e){}renderPresenter();window.scrollTo(0,0)}
 function fmt(sec){var a=Math.abs(sec);return (sec<0?'-':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0')}
-function statusChip(){return '<span class="chip netchip '+(net.ok?(net.ws?'ok':''):'gold')+'">'+(net.ok?(net.ws?'Live':'Live (slow mode)'):'Reconnecting…')+'</span>'}
+function statusChip(){if(offline)return '<span class="chip gold netchip">Offline: slides only</span>';return '<span class="chip netchip '+(net.ok?(net.ws?'ok':''):'gold')+'">'+(net.ok?(net.ws?'Live':'Live (slow mode)'):'Reconnecting…')+'</span>'}
 function renderPresenter(){
   if(view.t==='home'){
     app.className='';if(isOwner)setTimeout(function(){loadTeams()},0);
@@ -809,13 +815,15 @@ function act(a,d){
   else if(a==='prev'){hidePanelOnNav();if(view.i>0)go(view.s,view.i-1);else if(view.s>0)go(view.s-1,SEGS[view.s-1].slides.length-1);else go()}
   else if(a==='tgo'){var T=timers[seg.id];T.run=!T.run;updTimer()}
   else if(a==='trs'){timers[seg.id]={left:seg.min*60,run:false};updTimer()}
-  else if(a==='push'){var sl=curSlide();if(sl&&sl.prompt)push(sl.prompt,sl.prompt.seg)}
+  else if(a==='push'){if(offline)return flash('Offline: ask by show of hands.');var sl=curSlide();if(sl&&sl.prompt)push(sl.prompt,sl.prompt.seg)}
   else if(a==='toggleopen'&&live&&live.prompt)setLive({prompt:live.prompt,open:live.open===false,result:live.result||null,ts:Date.now()});
   else if(a==='reveal'&&live&&live.prompt)setLive({prompt:live.prompt,open:false,result:live.result?null:summarize(live.prompt),ts:Date.now()});
   else if(a==='remove')setLive({prompt:null,open:false,result:null,ts:Date.now()});
+  else if(a==='askgo'&&offline){flash('Offline: ask by show of hands.')}
   else if(a==='askgo'){var q=($('#aq').value||'').trim(),ty=$('#at').value;if(!q)return flash('Type the question first.');var p={base:'adhoc',type:ty,q:q,seg:'Quick question'};
     if(ty==='choice'){p.options=($('#ao').value||'').split(',').map(function(x){return x.trim()}).filter(Boolean);if(p.options.length<2)return flash('Give at least two choices.')}
     push(p,'Quick question');$('#aq').value='';flash('Sent to phones.')}
+  else if(a==='bankgo'&&offline){flash('Offline: ask by show of hands.')}
   else if(a==='bankgo'){var bq=BANK[+d.b];if(bq){used[bq.base]=1;saveUsed();push(bq,SEGS.filter(function(x){return x.id===bq.seg})[0].n);flash('Sent to phones.')}}
   else if(a==='bankused'){showUsed=!showUsed;drawBank()}
   else if(a==='panel')togglePanel();
@@ -823,6 +831,7 @@ function act(a,d){
   else if(a==='regtoggle'){var nx=teamInfo.reg==='closed'?'open':'closed';if(nx==='open')saveSettings({reg:'open'},'Registration reopened. Latecomers wait until you close it again.');else api('/api/settings',{key:KEY,body:{reg:'closed'}}).then(function(r){netOk(true);Object.assign(teamInfo,{cap:r.cap,houses:r.houses,barangays:r.barangays,reg:r.reg,mode:r.mode});var x=r.assigned;flash(x&&x.placed?'Registration closed. Placed '+x.placed+' '+(x.placed===1?'person':'people')+' in '+x.houses+' houses.'+(x.waiting?' '+x.waiting+' still waiting: raise members per house.':''):'Registration closed.');loadResp();loadTeams();updHouses()}).catch(function(){flash('Could not close registration. Check the connection.')})}
   else if(a==='brgysave'){var list=($('#brgyta').value||'').split('\n').map(function(x){return x.trim()}).filter(Boolean);if(list.length>12)return flash('Up to 12 barangays.');saveSettings({barangays:list},list.length?'Saved '+list.length+' barangay'+(list.length===1?'':'s')+'. Phones update in a few seconds.':'Barangay list cleared.')}
   else if(a==='qrzoom')qrZoom();
+  else if(a==='offline'){offline=true;isOwner=false;mode='presenter';document.body.classList.add('offline');renderPresenter()}
   else if(a==='capup')setCap(teamInfo.cap+1);
   else if(a==='capdn')setCap(teamInfo.cap-1);
   else if(a==='ask'){go(0,0);setTimeout(function(){var d=$('#askd');if(d)d.open=true},0)}
@@ -844,7 +853,7 @@ function keepText(){var t=$('#din');if(t)draft.text=t.value}
 async function clearAll(){try{await api('/api/clear',{key:KEY,body:{}});resp=[];used={};saveUsed();showUsed=false;await setLive({prompt:null,open:false,result:null,ts:Date.now()});flash('All answers cleared.');renderPresenter()}catch(e){flash('Could not clear. Check the connection.')}}
 
 /* ---------- boot ---------- */
-function unlockForm(msg){app.innerHTML='<div class="phone"><div><div class="brand">Facilitator</div><h1>From Ideas to Impact</h1></div><div class="card"><label class="lab">Presenter passcode</label><input type="password" id="pk" style="width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:42px" autocomplete="current-password">'+(msg?'<p style="color:var(--bad)">'+esc(msg)+'</p>':'')+'<div class="row"><button class="btn pri" data-act="unlock">Open presenter view</button></div></div></div>'}
+function unlockForm(msg){app.innerHTML='<div class="phone"><div><div class="brand">Facilitator</div><h1>From Ideas to Impact</h1></div><div class="card"><label class="lab">Presenter passcode</label><input type="password" id="pk" style="width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:42px" autocomplete="current-password">'+(msg?'<p style="color:var(--bad)">'+esc(msg)+'</p>':'')+'<div class="row"><button class="btn pri" data-act="unlock">Open presenter view</button></div><div class="offbox"><b>No internet?</b><p class="muted">Present the slides, calculators, and timers without phones. Phone questions and registration are off.</p><button class="btn" data-act="offline">Present offline (slides only)</button></div></div></div>'}
 async function startHost(k){try{await api('/api/responses',{key:k});KEY=k;loadTeams().then(updHouses);try{sessionStorage.setItem('iti_key',k)}catch(e){}isOwner=true;mode='presenter';return true}catch(e){return false}}
 
 /* ---------- live connection ----------
@@ -896,7 +905,7 @@ function startNet(){if(netStarted)return;netStarted=true;connect();
 async function boot(){
   try{uid=localStorage.getItem('iti_cid');if(!uid){uid='c'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('iti_cid',uid)}}catch(e){uid='c'+Math.random().toString(36).slice(2,10)}
   try{var dr=JSON.parse(localStorage.getItem('iti_draft')||'null');if(dr&&dr.pid)draft=dr}catch(e){}
-  var host=location.search.indexOf('host')>=0;
+  var host=location.search.indexOf('host')>=0||location.protocol==='file:';
   if(host){var k='';try{k=sessionStorage.getItem('iti_key')||''}catch(e){}
     if(!(k&&await startHost(k))){mode='lock';unlockForm();return}}
   else mode='phone';
@@ -910,7 +919,7 @@ async function boot(){
     else if(!m)mine=null}
   catch(e){if(local&&local.name){mine=local;unsent=true}netOk(false)}
   renderPhone();startNet()}
-app.addEventListener('click',async function(e){var b=e.target.closest('[data-act=unlock]');if(!b)return;var k=($('#pk').value||'').trim();if(await startHost(k)){renderPresenter();startNet()}else unlockForm('That passcode did not work.')});
+app.addEventListener('click',async function(e){var b=e.target.closest('[data-act=unlock]');if(!b)return;var k=($('#pk').value||'').trim();if(await startHost(k)){renderPresenter();startNet()}else unlockForm(navigator.onLine===false?'No internet. Use Present offline below.':'That passcode did not work, or there is no connection. If the internet is down, use Present offline below.')});
 boot();
 })();
 </script>
