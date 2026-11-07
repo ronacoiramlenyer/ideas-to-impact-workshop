@@ -31,7 +31,7 @@ export class Session {
 
   async rev() { return (await this.s.get("rev")) ?? 0; }
   async cap() { return (await this.s.get("cap")) ?? TEAM_CAP; }
-  async houses() { return Math.min((await this.s.get("houses")) ?? 0, TEAM_COUNT); } // 0 = not assigned yet
+  async houses() { return Math.min((await this.s.get("hin")) ?? 0, TEAM_COUNT); } // houses in use; 0 = not assigned yet (key "hin": older versions stored "houses")
   async reg() { return (await this.s.get("reg")) ?? "open"; }
   async mode() { return (await this.s.get("mode")) ?? "mix"; } // "mix" barangays in each house, or "same" barangay per house
   async brgys() { return (await this.s.get("brgys")) ?? DEFAULT_BRGYS; }
@@ -59,7 +59,7 @@ export class Session {
     }
     if (!best.length) {
       if (n >= TEAM_COUNT) return 0;
-      n += 1; await this.s.put("houses", n); return n;
+      n += 1; await this.s.put("hin", n); return n;
     }
     return best[rnd(best.length)];
   }
@@ -84,7 +84,7 @@ export class Session {
         g.forEach(([key, v], i) => { put[key] = { ...v, team: n + 1 + (i % k) }; placed++; });
         n += k;
       }
-      put.houses = n;
+      put.hin = n;
       await this.s.put(put);
     } else if (!n) {
       n = Math.min(TEAM_COUNT, Math.max(1, Math.ceil(docs.length / cap)));
@@ -98,7 +98,7 @@ export class Session {
         if ((size[t] || 0) >= cap) return; // more people than houses can hold
         size[t] = (size[t] || 0) + 1; put[k] = { ...v, team: t }; placed++;
       });
-      put.houses = n;
+      put.hin = n;
       await this.s.put(put);
     } else {
       for (const [k, v] of shuffle(waiting)) {
@@ -109,6 +109,14 @@ export class Session {
       n = await this.houses();
     }
     return { houses: n, placed, waiting: waiting.length - placed };
+  }
+
+  async placeAndNotify() {
+    const r = await this.assignAll();
+    await this.s.put("rev", (await this.rev()) + 1);
+    await this.broadcast({ live: false });
+    for (const ws of this.state.getWebSockets("phone")) { try { ws.send('{"me":1}'); } catch (e) {} } // phones fetch their house
+    return r;
   }
 
   // Members per house, optionally leaving one participant out.
@@ -153,16 +161,15 @@ export class Session {
       const b = await req.json();
       if (b.cap != null) await this.s.put("cap", b.cap);
       if (b.reg != null) await this.s.put("reg", b.reg);
+      let assigned = null;
+      if (b.reg === "closed") assigned = await this.placeAndNotify(); // houses are assigned when registration closes
       if (b.mode != null) await this.s.put("mode", b.mode);
       if (b.barangays != null) await this.s.put("brgys", b.barangays);
-      return J({ ok: true, ...(await this.settings()) });
+      return J({ ok: true, ...(await this.settings()), assigned });
     }
     if (u.pathname === "/assign") {
-      const r = await this.assignAll();
-      await this.s.put("rev", (await this.rev()) + 1);
-      await this.broadcast({ live: false });
-      for (const ws of this.state.getWebSockets("phone")) { try { ws.send('{"me":1}'); } catch (e) {} } // phones fetch their house
-      return J({ ok: true, ...r });
+      if ((await this.reg()) !== "closed") return J({ error: "close registration first" }, 409);
+      return J({ ok: true, ...(await this.placeAndNotify()) });
     }
     if (u.pathname === "/me") {
       const b = await req.json();
@@ -173,12 +180,7 @@ export class Session {
         if ((await this.reg()) === "closed") return J({ error: "registration closed" }, 423);
         const list = await this.brgys();
         if (list.length && !list.includes(b.doc.barangay)) return J({ error: "unknown barangay" }, 400);
-        b.doc.team = 0;
-        if (await this.houses()) { // houses already assigned: place a late registrant right away
-          const t = await this.assign(b.cid, b.doc.barangay);
-          if (!t) return J({ error: "all houses full" }, 409);
-          b.doc.team = t;
-        }
+        b.doc.team = 0; // everyone waits; houses are assigned when the presenter closes registration
       }
       await this.s.put({ ["p:" + b.cid]: b.doc, rev: (await this.rev()) + 1 });
       await this.broadcast({ live: false });
