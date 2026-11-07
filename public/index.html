@@ -225,6 +225,19 @@ table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)
 .offline .houses,.offline .join .jt,.offline [data-act=clear],.offline [data-act=phone]{display:none}
 .offbox{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
 .offbox p{margin:4px 0 10px}
+.part{margin-top:16px}
+.ptbl{margin-top:10px}
+.pbar{position:relative;background:var(--surface2);border-radius:6px;height:1.5em;min-width:120px;overflow:hidden}
+.pbar i{position:absolute;left:0;top:0;bottom:0;background:var(--ok);opacity:.55}
+.pbar span{position:relative;padding:0 .5em;font-weight:700;line-height:1.5em}
+.partbig{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;padding:3vh 4vw;cursor:zoom-out}
+.partbig h2{font-size:clamp(24px,4.4vh,48px);margin:0}
+.partbig .muted{font-size:clamp(14px,2.3vh,24px);margin:.2em 0 .5em}
+.partbig table.t{font-size:clamp(14px,2.5vh,28px)}
+.partbig table.t th,.partbig table.t td{padding:.22em .6em}
+.partbig .pbar{height:1.3em}.partbig .pbar span{line-height:1.3em}
+.partbig h2{margin-bottom:0}
+.pclose{text-align:center;margin-top:1em}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -679,6 +692,7 @@ function renderPresenter(){
     +'<div class="join">'+qrBlock('qrHome','150px')+'<div class="jt"><div class="row"><span id="jn" class="chip">'+resp.length+' joined</span>'+statusChip()+'</div><span class="muted">Participants scan the code or open <b>'+esc(JOIN_LABEL)+'</b> on their phone, type a first name, tap their barangay, and get a house at random.</span></div></div>'
     +'<div class="card houses"><div id="hstat"></div><div class="hchips" id="hchips"></div>'
     +'<div class="brgyed"><label class="lab" for="brgyta">Barangays (one per line)</label><textarea id="brgyta" rows="6" placeholder="One barangay per line">'+esc((teamInfo.barangays||[]).join('\n'))+'</textarea><div class="row"><button class="btn sm" data-act="brgysave">Save barangays</button><span class="muted" id="bcounts"></span></div></div></div>'
+    +'<div class="card part" id="partcard"></div>'
     +'<div class="tools"><button class="btn" data-act="phone">Preview phone view</button><button class="btn" data-act="ask">Ask a question now</button><button class="btn ghost" data-act="clear">'+(clearArm?'Tap again to delete all answers':'Clear all answers')+'</button></div></div>';
     updJoined();return}
   var seg=SEGS[view.s],sl=seg.slides[view.i],T=timers[seg.id];
@@ -690,7 +704,29 @@ function renderPresenter(){
   if(sl.init)sl.init($('#sbody'),cleanup);
   updTimer();renderPanel()}
 function askForm(){return '<label class="lab">Or type your own question</label><input type="text" id="aq" placeholder="Type a question for the phones"><label class="lab">Answer type</label><select id="at"><option value="text">Short text</option><option value="choice">Choice</option><option value="number">Number</option><option value="scale">Rating 1 to 5</option><option value="risk">Risk (description + Occurrence + Impact)</option></select><div id="aoWrap" style="display:none"><label class="lab">Choices, separated by commas</label><input type="text" id="ao" placeholder="Yes, No, Not sure"></div><div class="row"><button class="btn pri sm" data-act="askgo">Push to phones</button></div>'}
-function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';var rn=$('#regn');if(rn&&rn.textContent!==String(resp.length)){rn.textContent=resp.length;rn.classList.remove('bump');void rn.offsetWidth;rn.classList.add('bump')}updHouses()}
+/* ---------- participation by house ---------- */
+function partData(){var Q={};resp.forEach(function(r){Object.keys((r.data&&r.data.answers)||{}).forEach(function(k){Q[k]=1})});var nq=Object.keys(Q).length,H={};
+  resp.forEach(function(r){var d=r.data||{},t=d.team||0,a=Object.keys(d.answers||{}).length;var h=H[t]=H[t]||{team:t,members:0,answered:0,answers:0};h.members++;h.answers+=a;if(a)h.answered++});
+  var rows=Object.keys(H).map(function(k){var h=H[k];h.rate=nq&&h.members?h.answers/(h.members*nq):0;return h}).sort(function(a,b){return (b.team?1:0)-(a.team?1:0)||b.rate-a.rate||b.answered-a.answered||a.team-b.team});
+  var tot={members:resp.length,answered:rows.reduce(function(a,h){return a+h.answered},0),answers:rows.reduce(function(a,h){return a+h.answers},0)};tot.rate=nq&&tot.members?tot.answers/(tot.members*nq):0;
+  return {nq:nq,rows:rows,tot:tot}}
+function pct(x){return Math.round(x*100)+'%'}
+function partTable(D){return '<table class="t ptbl"><thead><tr><th>House</th><th class="num">Members</th><th class="num">Answered</th><th class="num">Answers</th><th>Participation</th></tr></thead><tbody>'
+  +D.rows.map(function(h){return '<tr><td><b>'+esc(houseLabel(h.team))+'</b></td><td class="num">'+h.members+'</td><td class="num">'+h.answered+' of '+h.members+'</td><td class="num">'+h.answers+'</td><td><div class="pbar"><i style="width:'+Math.round(h.rate*100)+'%"></i><span>'+pct(h.rate)+'</span></div></td></tr>'}).join('')
+  +'</tbody><tfoot><tr><th>All</th><th class="num">'+D.tot.members+'</th><th class="num">'+D.tot.answered+' of '+D.tot.members+'</th><th class="num">'+D.tot.answers+'</th><th>'+pct(D.tot.rate)+'</th></tr></tfoot></table>'}
+function updParticipation(){var el=$('#partcard');if(!el)return;var D=partData();
+  el.innerHTML='<div class="ph"><b>Participation by house</b><span class="muted">'+D.nq+' question'+(D.nq===1?'':'s')+' answered so far</span><span class="sp" style="flex:1"></span>'+(D.rows.length?'<button class="btn sm" data-act="partbig">Show on screen</button><button class="btn sm ghost" data-act="partcsv">Download CSV</button>':'')+'</div>'
+    +(D.rows.length&&D.nq?partTable(D):'<p class="muted" style="margin:6px 0 0">Appears once people answer questions. Participation = answers given ÷ (members × questions asked).</p>');
+  if(partBig)partBig.querySelector('.pbody').innerHTML=partBigHTML()}
+var partBig=null;
+function partBigHTML(){var D=partData();return '<h2>Participation by house</h2><p class="muted">'+D.nq+' questions asked · '+D.tot.answered+' of '+D.tot.members+' people answered at least once</p>'+partTable(D)}
+function partZoom(){if(partBig){partBig.remove();partBig=null;return}partBig=document.createElement('div');partBig.className='partbig';partBig.setAttribute('role','dialog');partBig.innerHTML='<div class="pbody">'+partBigHTML()+'</div><p class="muted pclose">Click anywhere to close</p>';partBig.addEventListener('click',partZoom);document.body.appendChild(partBig)}
+document.addEventListener('keydown',function(e){if(partBig&&e.key==='Escape')partZoom()});
+function partCSV(){var D=partData(),L=[['House','Members','Answered (at least one)','Answers','Participation %','Questions asked']];
+  D.rows.forEach(function(h){L.push([houseLabel(h.team),h.members,h.answered,h.answers,Math.round(h.rate*100),D.nq])});L.push(['All',D.tot.members,D.tot.answered,D.tot.answers,Math.round(D.tot.rate*100),D.nq]);
+  var csv=L.map(function(r){return r.map(function(c){c=String(c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')}).join('\r\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='participation-by-house.csv';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
+function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';updParticipation();var rn=$('#regn');if(rn&&rn.textContent!==String(resp.length)){rn.textContent=resp.length;rn.classList.remove('bump');void rn.offsetWidth;rn.classList.add('bump')}updHouses()}
 /* Home: members in each house, and the presenter's house size setting. */
 function updHouses(){var el=$('#hchips');if(!el)return;var c={},bc={},waiting=0;resp.forEach(function(r){var t=r.data&&r.data.team,b=r.data&&r.data.barangay;if(t)c[t]=(c[t]||0)+1;else waiting++;if(b)bc[b]=(bc[b]||0)+1});
   var cap=teamInfo.cap,n=teamInfo.houses,N=resp.length,same=teamInfo.mode==='same',open=teamInfo.reg!=='closed';
@@ -831,6 +867,8 @@ function act(a,d){
   else if(a==='regtoggle'){var nx=teamInfo.reg==='closed'?'open':'closed';if(nx==='open')saveSettings({reg:'open'},'Registration reopened. Latecomers wait until you close it again.');else api('/api/settings',{key:KEY,body:{reg:'closed'}}).then(function(r){netOk(true);Object.assign(teamInfo,{cap:r.cap,houses:r.houses,barangays:r.barangays,reg:r.reg,mode:r.mode});var x=r.assigned;flash(x&&x.placed?'Registration closed. Placed '+x.placed+' '+(x.placed===1?'person':'people')+' in '+x.houses+' houses.'+(x.waiting?' '+x.waiting+' still waiting: raise members per house.':''):'Registration closed.');loadResp();loadTeams();updHouses()}).catch(function(){flash('Could not close registration. Check the connection.')})}
   else if(a==='brgysave'){var list=($('#brgyta').value||'').split('\n').map(function(x){return x.trim()}).filter(Boolean);if(list.length>12)return flash('Up to 12 barangays.');saveSettings({barangays:list},list.length?'Saved '+list.length+' barangay'+(list.length===1?'':'s')+'. Phones update in a few seconds.':'Barangay list cleared.')}
   else if(a==='qrzoom')qrZoom();
+  else if(a==='partbig')partZoom();
+  else if(a==='partcsv')partCSV();
   else if(a==='offline'){offline=true;isOwner=false;mode='presenter';document.body.classList.add('offline');renderPresenter()}
   else if(a==='capup')setCap(teamInfo.cap+1);
   else if(a==='capdn')setCap(teamInfo.cap-1);
