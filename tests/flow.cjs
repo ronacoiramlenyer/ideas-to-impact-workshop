@@ -53,6 +53,12 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     await host.click('[data-act=unlock]');
     await host.getByRole('heading', { name: 'From Ideas to Impact' }).waitFor();
     await host.locator('#qrHome svg').waitFor(); ok('host unlocked, Home shows QR');
+    await host.click('#qrHome');
+    await host.locator('.qrbig svg').waitFor();
+    const big = await host.locator('.qrbig svg').evaluate((e) => e.getBoundingClientRect().width);
+    assert.ok(big > 500, 'enlarged QR is big: ' + big);
+    await host.click('.qrbig');
+    await host.locator('.qrbig').waitFor({ state: 'detached' }); ok('clicking the QR enlarges it; clicking again returns it to size');
 
     // Phone joins
     await phone.goto(BASE + '/');

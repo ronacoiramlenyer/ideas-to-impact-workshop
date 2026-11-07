@@ -190,6 +190,12 @@ table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)
 .hh small{display:block;color:var(--muted);font-size:.9em}
 .hfinal{font-size:clamp(22px,min(3vw,4.6vh),36px);font-weight:800;color:var(--accent);margin:18px 0 4px;line-height:1.2}
 @media (max-width:800px){.hloop{grid-template-columns:1fr 1fr}}
+.qr[data-act=qrzoom]{cursor:zoom-in}
+.qr[data-act=qrzoom]:hover svg,.qr[data-act=qrzoom]:focus-visible svg{outline:3px solid var(--accent);outline-offset:3px}
+.qrbig{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:2vmin}
+.qrbox{background:#fff;border-radius:16px;padding:2.5vmin;display:flex;flex-direction:column;align-items:center;gap:1.5vmin}
+.qrbox svg{width:min(80vh,86vw);height:min(80vh,86vw);display:block}
+.qrbl{color:#111;font-weight:800;font-size:clamp(18px,3.4vh,34px);text-align:center;word-break:break-all}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -353,7 +359,14 @@ var qrSVG=(function(){
 })();
 var JOIN_URL=location.origin+'/';
 var JOIN_LABEL=location.host;
-function qrBlock(id,size){return '<div class="qr" id="'+id+'" style="--qs:'+size+'">'+qrSVG(JOIN_URL)+'<div class="qrl">'+esc(JOIN_LABEL)+'</div></div>'}
+function qrBlock(id,size){return '<div class="qr" id="'+id+'" style="--qs:'+size+'" data-act="qrzoom" role="button" tabindex="0" aria-label="Enlarge the QR code" title="Click to enlarge">'+qrSVG(JOIN_URL)+'<div class="qrl">'+esc(JOIN_LABEL)+'</div></div>'}
+/* Click a QR code to show it full screen; click again (or press Esc) to return it to size. */
+var qrBig=null;
+function qrZoom(){if(qrBig){qrBig.remove();qrBig=null;return}
+  qrBig=document.createElement('div');qrBig.className='qrbig';qrBig.setAttribute('role','button');qrBig.setAttribute('tabindex','0');qrBig.setAttribute('aria-label','Return the QR code to size');
+  qrBig.innerHTML='<div class="qrbox">'+qrSVG(JOIN_URL)+'<div class="qrbl">Scan to join · '+esc(JOIN_LABEL)+'</div></div>';
+  qrBig.addEventListener('click',qrZoom);document.body.appendChild(qrBig);qrBig.focus()}
+document.addEventListener('keydown',function(e){if(qrBig&&(e.key==='Escape'||e.key==='Enter'||e.key===' ')){e.preventDefault();qrZoom()}else if(!qrBig&&(e.key==='Enter'||e.key===' ')&&e.target&&e.target.getAttribute&&e.target.getAttribute('data-act')==='qrzoom'){e.preventDefault();qrZoom()}},true);
 
 /* ---------- risk model ---------- */
 var OCC=[[5,'Almost certain','More than 75%; more than 10 times a year'],[4,'Likely','More than 50% to 75%; 6 to 10 times a year'],[3,'Possible','More than 25% to 50%; 3 to 5 times a year'],[2,'Unlikely','0 times but there is an existing issue; up to 25%; 1 to 2 times a year'],[1,'Rare','Has not happened and no existing issue']];
@@ -763,6 +776,7 @@ function act(a,d){
   else if(a==='mode'){if(d.m!==teamInfo.mode)saveSettings({mode:d.m},d.m==='same'?'Houses will hold one barangay each.':'Houses will mix barangays.')}
   else if(a==='regtoggle'){var nx=teamInfo.reg==='closed'?'open':'closed';if(nx==='open')saveSettings({reg:'open'},'Registration reopened. Latecomers wait until you close it again.');else api('/api/settings',{key:KEY,body:{reg:'closed'}}).then(function(r){netOk(true);Object.assign(teamInfo,{cap:r.cap,houses:r.houses,barangays:r.barangays,reg:r.reg,mode:r.mode});var x=r.assigned;flash(x&&x.placed?'Registration closed. Placed '+x.placed+' '+(x.placed===1?'person':'people')+' in '+x.houses+' houses.'+(x.waiting?' '+x.waiting+' still waiting: raise members per house.':''):'Registration closed.');loadResp();loadTeams();updHouses()}).catch(function(){flash('Could not close registration. Check the connection.')})}
   else if(a==='brgysave'){var list=($('#brgyta').value||'').split('\n').map(function(x){return x.trim()}).filter(Boolean);if(list.length>12)return flash('Up to 12 barangays.');saveSettings({barangays:list},list.length?'Saved '+list.length+' barangay'+(list.length===1?'':'s')+'. Phones update in a few seconds.':'Barangay list cleared.')}
+  else if(a==='qrzoom')qrZoom();
   else if(a==='capup')setCap(teamInfo.cap+1);
   else if(a==='capdn')setCap(teamInfo.cap-1);
   else if(a==='ask'){go(0,0);setTimeout(function(){var d=$('#askd');if(d)d.open=true},0)}
