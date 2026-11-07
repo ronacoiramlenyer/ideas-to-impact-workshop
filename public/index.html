@@ -196,6 +196,15 @@ table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)
 .qrbox{background:#fff;border-radius:16px;padding:2.5vmin;display:flex;flex-direction:column;align-items:center;gap:1.5vmin}
 .qrbox svg{width:min(80vh,86vw);height:min(80vh,86vw);display:block}
 .qrbl{color:#111;font-weight:800;font-size:clamp(18px,3.4vh,34px);text-align:center;word-break:break-all}
+.hero{display:flex;align-items:center;gap:24px}
+.hero .htext{flex:1;min-width:0}
+.regcount{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:clamp(140px,16vw,240px);padding:12px 20px;border-radius:var(--r);background:var(--accent-soft);color:var(--accent)}
+.regcount b{font-size:clamp(56px,8vw,120px);line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+.regcount span{font-size:clamp(16px,1.8vw,24px);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.regcount b.bump{animation:bump .5s ease}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.regcount b.bump{animation:none}}
+@media (max-width:640px){.hero{flex-direction:column;align-items:flex-start}}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -621,7 +630,7 @@ function renderPresenter(){
   if(view.t==='home'){
     app.className='';if(isOwner)setTimeout(function(){loadTeams()},0);
     var tot=SEGS.reduce(function(a,s){return a+s.min},0);
-    app.innerHTML='<div class="home"><div class="hero"><div class="k">SK Leadership Session · South Caloocan</div><h1>From Ideas to Impact</h1><p>Planning Responsibly, Budgeting Transparently, and Managing Risks Proactively. '+tot+' minutes.</p></div>'
+    app.innerHTML='<div class="home"><div class="hero"><div class="htext"><div class="k">SK Leadership Session · South Caloocan</div><h1>From Ideas to Impact</h1><p>Planning Responsibly, Budgeting Transparently, and Managing Risks Proactively. '+tot+' minutes.</p></div><div class="regcount" aria-live="polite"><b id="regn">'+resp.length+'</b><span>registered</span></div></div>'
     +'<div class="strip">'+SEGS.map(function(s){return '<i style="flex:'+s.min+'" title="'+esc(s.n)+'"></i>'}).join('')+'</div>'
     +'<div class="segs">'+SEGS.map(function(s,i){var q=s.slides.filter(function(x){return x.prompt}).length;return '<button class="seg" data-act="open" data-s="'+i+'"><span class="n">'+(i+1)+' · '+s.min+' min</span><h2>'+esc(s.n)+'</h2><span class="muted">'+esc(s.tag)+'</span><span class="m"><span class="chip">'+s.slides.length+' slide'+(s.slides.length===1?'':'s')+'</span>'+(q?'<span class="chip gold">'+q+' phone question'+(q>1?'s':'')+'</span>':'')+'</span></button>'}).join('')+'</div>'
     +'<div class="join">'+qrBlock('qrHome','150px')+'<div class="jt"><div class="row"><span id="jn" class="chip">'+resp.length+' joined</span>'+statusChip()+'</div><span class="muted">Participants scan the code or open <b>'+esc(JOIN_LABEL)+'</b> on their phone, type a first name, tap their barangay, and get a house at random.</span></div></div>'
@@ -638,7 +647,7 @@ function renderPresenter(){
   if(sl.init)sl.init($('#sbody'),cleanup);
   updTimer();renderPanel()}
 function askForm(){return '<label class="lab">Or type your own question</label><input type="text" id="aq" placeholder="Type a question for the phones"><label class="lab">Answer type</label><select id="at"><option value="text">Short text</option><option value="choice">Choice</option><option value="number">Number</option><option value="scale">Rating 1 to 5</option><option value="risk">Risk (description + Occurrence + Impact)</option></select><div id="aoWrap" style="display:none"><label class="lab">Choices, separated by commas</label><input type="text" id="ao" placeholder="Yes, No, Not sure"></div><div class="row"><button class="btn pri sm" data-act="askgo">Push to phones</button></div>'}
-function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';updHouses()}
+function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';var rn=$('#regn');if(rn&&rn.textContent!==String(resp.length)){rn.textContent=resp.length;rn.classList.remove('bump');void rn.offsetWidth;rn.classList.add('bump')}updHouses()}
 /* Home: members in each house, and the presenter's house size setting. */
 function updHouses(){var el=$('#hchips');if(!el)return;var c={},bc={},waiting=0;resp.forEach(function(r){var t=r.data&&r.data.team,b=r.data&&r.data.barangay;if(t)c[t]=(c[t]||0)+1;else waiting++;if(b)bc[b]=(bc[b]||0)+1});
   var cap=teamInfo.cap,n=teamInfo.houses,N=resp.length,same=teamInfo.mode==='same',open=teamInfo.reg!=='closed';
