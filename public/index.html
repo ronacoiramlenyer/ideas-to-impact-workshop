@@ -528,7 +528,7 @@ var SEGS=[
    return '<div class="hloop">'+cols.map(function(c){return '<div class="hcol"><b>'+c[0]+'</b>'+c[1].map(function(h){return '<div class="hh"><span class="hn">'+h[0]+'</span><div><strong>'+h[1]+'</strong><small>'+h[2]+'</small></div></div>'}).join('')+'</div>'}).join('')+'</div>'
    +'<p class="hfinal">And that\'s the 7 Habits of Highly Effective Leaders, which you are.</p><p class="muted" style="margin:0">From Stephen R. Covey, <i>The 7 Habits of Highly Effective People</i>.</p>'}},
  {t:'One commitment',k:'Closing',body:function(){return '<p>What is the <b>first thing</b> you will do next week to move your idea toward impact?</p>'},prompt:{base:'commit',type:'text',q:'What is the first thing you will do next week to move your idea toward impact?'}},
- {t:'Salamat po!',k:'Thank you',body:function(){return '<p style="font-size:clamp(22px,4vw,40px);font-weight:700">Ideas become impact when we plan, budget, and prepare for what could go wrong.</p>'}}
+ {t:'Salamat po!',k:'Thank you',body:function(){return '<p style="font-size:clamp(22px,4vw,40px);font-weight:700">Ideas become impact when we plan responsibly, budget transparently, and manage risk proactively, preparing for what could go wrong.</p>'}}
 ]}];
 SEGS.forEach(function(s,si){s.slides.forEach(function(sl,i){sl.id=sl.id||(s.id+'-'+i);if(sl.prompt)sl.prompt.seg=s.n})});
 
