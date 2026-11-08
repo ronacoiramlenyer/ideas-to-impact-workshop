@@ -76,7 +76,10 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
 
     // First slide has QR
     await host.click('[data-act=open][data-s="0"]');
-    await host.locator('#qrSlide svg').waitFor(); ok('first slide shows QR');
+    await host.getByRole('heading', { name: 'Every SK has a good idea.' }).waitFor();
+    await host.click('[data-act=next]'); await host.getByRole('heading', { name: "Today's objectives" }).waitFor();
+    await host.click('[data-act=next]');
+    await host.locator('#qrSlide svg').waitFor(); ok('opening: hook, objectives, then the title slide with QR');
 
     // Text question: draft survives re-renders (polls, presenter changes)
     await host.click('[data-act=next]');

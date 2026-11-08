@@ -252,6 +252,18 @@ table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)
 .rosterbig .rtbl{font-size:.9em}
 .rosterbig .rhouse{padding:.6em .8em}
 .card.myhouse .tblgo{display:inline-block;margin:6px auto 2px;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:22px;border-radius:10px;padding:4px 14px}
+.hook{display:flex;flex-direction:column;justify-content:center;min-height:46vh;gap:.7em}
+#app.deck .hook .h1,.hook .h1{font-size:2.1em;font-weight:800;line-height:1.12;margin:0}
+.hook .h1 b{color:var(--gold)}
+#app.deck .hook .hq,.hook .hq{font-size:1.3em;line-height:1.4;margin:0;max-width:30em}
+.hook .hq b{color:var(--accent)}
+.objs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5em}
+.obj{background:var(--surface2);border-radius:12px;border-top:5px solid var(--accent);padding:.5em .7em;position:relative}
+.obj>b{display:block;font-size:1.02em}
+.obj p{margin:.25em 0 0;font-size:.8em;line-height:1.35}
+.obj .on{position:absolute;top:-.7em;right:.6em;width:1.5em;height:1.5em;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.8em}
+.otarget{margin-top:.6em;background:var(--ok-soft);border-radius:12px;padding:.45em .8em;font-size:.88em}
+@media (max-width:800px){.objs{grid-template-columns:1fr}}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -467,7 +479,13 @@ function tbl(head,rows){return '<div class="tw"><table class="t"><thead><tr>'+he
 var HABITS=['Be Proactive','Begin with the End in Mind','Put First Things First','Think Win-Win','Seek First to Understand','Synergize','Sharpen the Saw'];
 
 var SEGS=[
-{id:'open',n:'Opening',min:12,tag:'Warm up and frame the day: an icebreaker, the 4 Ws and H, and the 7 Habits primer.',slides:[
+{id:'open',n:'Opening',min:12,tag:'The hook and today\'s objectives, an icebreaker, the 4 Ws and H, and the 7 Habits primer.',slides:[
+ {t:'Every SK has a good idea.',k:'From Ideas to Impact',body:function(){return '<div class="hook"><p class="h1">Not every good idea becomes <b>impact</b>.</p><p class="hq">What will it take for <u>your</u> idea to be <b>planned responsibly</b>, <b>budgeted transparently</b>, and <b>kept safe</b>, so it truly changes something for the youth?</p></div>'}},
+ {t:'Today\'s objectives',k:'By the end of today, each house has a working draft',body:function(){return '<div class="objs">'
+   +'<div class="obj"><span class="on">1</span><b>Plan Responsibly</b><p>Page 1: objectives with a <b>KPI</b>, a <b>target</b>, and an <b>evaluation plan</b>, clear enough that someone who was not here could run it.</p></div>'
+   +'<div class="obj"><span class="on">2</span><b>Budget Transparently</b><p>Page 2: every line with Qty, Unit, Unit Cost, and Total, a <b>cost per participant</b>, and every peso traced to a program item.</p></div>'
+   +'<div class="obj"><span class="on">3</span><b>Manage Risks Proactively</b><p>Page 3: <b>at least 3 risks</b> of your own, rated, each with a control, a mitigation, and an action with an owner and a date.</p></div>'
+   +'</div><div class="otarget"><b>Our target:</b> at least <b>10 of 12 houses</b> complete all three pages, and at least <b>80%</b> of you answer on your phone.</div>'}},
  {t:'From Ideas to Impact',k:'SK Leadership Session · South Caloocan',body:function(){return '<div class="opening"><div><p style="font-size:clamp(20px,2.6vw,32px);font-weight:600;max-width:24ch;margin-top:0">Planning Responsibly, Budgeting Transparently, and Managing Risks Proactively</p><p class="muted">Two hours. Three skills. One plan your team can actually run.</p><div class="grid3"><div class="box"><b>Part 1</b>Plan Responsibly</div><div class="box"><b>Part 2</b>Budget Transparently</div><div class="box"><b>Part 3</b>Manage Risks Proactively</div></div></div><div class="joinbox"><b>Join on your phone</b>'+qrBlock('qrSlide','min(30vh,240px)')+'<span class="muted">No account needed. Type your first name, tap your team.</span></div></div>'}},
  {t:'The event that went wrong',k:'Icebreaker · 3 min',body:function(){return '<p>Think of an event you joined or organized that went wrong.</p><p><b>On your phone, in one line: what went wrong?</b></p><p class="muted">No names needed. We read them together.</p>'},prompt:{base:'ice1',type:'text',q:'Think of an event that went wrong. In one line: what went wrong?'}},
  {t:'What was missing?',k:'Icebreaker · vote',body:function(){return '<p>Looking at that wall, almost every story comes down to one of three things:</p><div class="grid2"><div class="box"><b>The plan</b>No clear objective</div><div class="box"><b>The money</b>No budget anyone could follow</div><div class="box"><b>The risks</b>No one saw it coming</div></div><p>That is today.</p>'},prompt:{base:'ice2',type:'choice',q:'Looking back at that event, what was most missing?',options:['A clear objective','A budget we could follow','A plan for risks','Something else']}},

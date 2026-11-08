@@ -7,7 +7,7 @@ const { chromium } = require('playwright'); const assert = require('assert/stric
   await p.goto('file://' + require('path').resolve(__dirname, '../handouts/From_Ideas_to_Impact_OFFLINE.html'));
   await p.click('[data-act=offline]'); await p.waitForSelector('.hero');
   assert.ok(await p.locator('.houses').isHidden());
-  await p.click('[data-act=open][data-s="0"]'); const lbl = await p.locator('#qrSlide .qrl').textContent(); assert.equal(lbl, 'ideas-to-impact.learneasytoday.workers.dev');
+  await p.click('[data-act=open][data-s="0"]'); await p.click('[data-act=next]'); await p.click('[data-act=next]'); const lbl = await p.locator('#qrSlide .qrl').textContent(); assert.equal(lbl, 'ideas-to-impact.learneasytoday.workers.dev');
   await p.click('[data-act=home]'); await p.click('[data-act=open][data-s="3"]'); for (let k=0;k<5;k++) await p.click('[data-act=next]');
   await p.getByRole('heading', { name: 'Risk rating calculator' }).waitFor(); await p.click('[data-k=o][data-n="5"]'); await p.locator('#rLine', { hasText: '5 + 2 = 7' }).waitFor();
   await p.click('[data-act=tgo]'); await p.waitForTimeout(1200); const tm = await p.locator('#tmr').textContent(); assert.notEqual(tm, '40:00');
