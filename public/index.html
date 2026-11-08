@@ -238,6 +238,20 @@ table.xm td.low{background:var(--b-low)} table.xm td.med{background:var(--b-med)
 .partbig .pbar{height:1.3em}.partbig .pbar span{line-height:1.3em}
 .partbig h2{margin-bottom:0}
 .pclose{text-align:center;margin-top:1em}
+.roster{margin-top:16px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:10px}
+.rhouse{background:var(--surface2);border-radius:12px;padding:10px 12px}
+.rh{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:4px}
+.rh b{font-size:17px}
+.rh input.tbin{width:9em;min-height:32px;padding:4px 8px;font-weight:700;text-align:center}
+.rhouse ol{margin:0;padding-left:1.3em}
+.rhouse li{margin:1px 0}
+.rtbl{background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:.1em .5em;font-weight:800;white-space:nowrap}
+.rosterbig .rgrid.big{grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1.2vh 1.2vw;font-size:clamp(13px,2.65vh,30px)}
+.rosterbig .rgrid.big .rh b{font-size:1.2em;white-space:nowrap}
+.rosterbig .rtbl{font-size:.9em}
+.rosterbig .rhouse{padding:.6em .8em}
+.card.myhouse .tblgo{display:inline-block;margin:6px auto 2px;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:22px;border-radius:10px;padding:4px 14px}
 /* panel */
 #panel{display:flex;flex-direction:column;gap:12px}
 .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -652,7 +666,7 @@ function saveMine(){var d=JSON.parse(JSON.stringify(mine));unsent=true;try{local
     if(String(e.message)==='400'){unsent=false;flash('That answer could not be saved.');return false}netOk(false);return false});
   return chainM.then(function(ok){if(mode==='phone')renderPhone();return ok})}
 /* Houses are assigned by the presenter after registration; phones then fetch their own record. */
-function refreshMe(){if(mode!=='phone'||!mine||mine.team)return;api('/api/me?cid='+encodeURIComponent(uid)).then(function(m){if(m&&m.team&&mine&&!mine.team){mine=Object.assign({},mine,{team:m.team});savedTeam=m.team;try{localStorage.setItem('iti_mine',JSON.stringify(mine))}catch(e){}renderPhone()}}).catch(function(){})}
+function refreshMe(){if(mode!=='phone'||!mine||mine.team)return;api('/api/me?cid='+encodeURIComponent(uid)).then(function(m){if(m&&m.team&&mine&&!mine.team){mine=Object.assign({},mine,{team:m.team});savedTeam=m.team;try{localStorage.setItem('iti_mine',JSON.stringify(mine))}catch(e){}renderPhone();loadTeams()}}).catch(function(){})}
 function retryUnsent(){if(unsent&&mine&&mode==='phone'&&epochKnown)saveMine()}
 /* After "Clear all answers" the server's epoch goes up: forget this phone's old copy and join again. */
 var epochKnown=false;
@@ -692,6 +706,7 @@ function renderPresenter(){
     +'<div class="join">'+qrBlock('qrHome','150px')+'<div class="jt"><div class="row"><span id="jn" class="chip">'+resp.length+' joined</span>'+statusChip()+'</div><span class="muted">Participants scan the code or open <b>'+esc(JOIN_LABEL)+'</b> on their phone, type a first name, tap their barangay, and get a house at random.</span></div></div>'
     +'<div class="card houses"><div id="hstat"></div><div class="hchips" id="hchips"></div>'
     +'<div class="brgyed"><label class="lab" for="brgyta">Barangays (one per line)</label><textarea id="brgyta" rows="6" placeholder="One barangay per line">'+esc((teamInfo.barangays||[]).join('\n'))+'</textarea><div class="row"><button class="btn sm" data-act="brgysave">Save barangays</button><span class="muted" id="bcounts"></span></div></div></div>'
+    +'<div class="card roster" id="rostercard"></div>'
     +'<div class="card part" id="partcard"></div>'
     +'<div class="tools"><button class="btn" data-act="phone">Preview phone view</button><button class="btn" data-act="ask">Ask a question now</button><button class="btn ghost" data-act="clear">'+(clearArm?'Tap again to delete all answers':'Clear all answers')+'</button></div></div>';
     updJoined();return}
@@ -726,7 +741,29 @@ function partCSV(){var D=partData(),L=[['House','Members','Answered (at least on
   D.rows.forEach(function(h){L.push([houseLabel(h.team),h.members,h.answered,h.answers,Math.round(h.rate*100),D.nq])});L.push(['All',D.tot.members,D.tot.answered,D.tot.answers,Math.round(D.tot.rate*100),D.nq]);
   var csv=L.map(function(r){return r.map(function(c){c=String(c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')}).join('\r\n');
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='participation-by-house.csv';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
-function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';updParticipation();var rn=$('#regn');if(rn&&rn.textContent!==String(resp.length)){rn.textContent=resp.length;rn.classList.remove('bump');void rn.offsetWidth;rn.classList.add('bump')}updHouses()}
+/* ---------- houses and tables roster ---------- */
+var draftTables={};
+function rosterData(){var H={};resp.forEach(function(r){var d=r.data||{};if(!d.team)return;(H[d.team]=H[d.team]||[]).push({name:d.name||'',brgy:d.barangay||''})});
+  return Object.keys(H).map(Number).sort(function(a,b){return a-b}).map(function(t){return {team:t,table:tableOf(t),members:H[t].sort(function(a,b){return a.name.localeCompare(b.name)})}})}
+function updRoster(){var el=$('#rostercard');if(!el)return;var a=document.activeElement;if(a&&a.classList&&a.classList.contains('tbin')&&el.contains(a))return; /* do not redraw while typing */
+  var R=rosterData(),waiting=resp.filter(function(r){return !(r.data&&r.data.team)}).length;
+  el.innerHTML='<div class="ph"><b>Houses and tables</b><span class="muted">'+(R.length?R.length+' houses · type a table for each, then Save':'Appears after you close registration and houses are assigned')+'</span><span style="flex:1"></span>'
+    +(R.length?'<button class="btn sm pri" data-act="tblsave">Save tables</button><button class="btn sm" data-act="rosterbig">Show on screen</button><button class="btn sm ghost" data-act="rostercsv">Download CSV</button>':'')+'</div>'
+    +(R.length?'<div class="rgrid">'+R.map(function(h){var v=draftTables[h.team]!=null?draftTables[h.team]:h.table;
+      return '<div class="rhouse"><div class="rh"><b>House '+esc(teamName(h.team))+'</b><input class="tbin" data-t="'+h.team+'" maxlength="24" value="'+esc(v)+'" aria-label="Table for House '+esc(teamName(h.team))+'"></div><ol>'+h.members.map(function(m){return '<li>'+esc(m.name)+' <span class="muted">· '+esc(m.brgy)+'</span></li>'}).join('')+'</ol></div>'}).join('')+'</div>':'')
+    +(waiting&&R.length?'<p class="muted" style="margin:8px 0 0">'+waiting+' registered without a house yet.</p>':'');
+  if(rosterBig)rosterBig.querySelector('.rbody').innerHTML=rosterBigHTML()}
+var rosterBig=null;
+function rosterBigHTML(){var R=rosterData();return '<h2>Houses and tables</h2><div class="rgrid big" style="--n:'+Math.min(4,Math.max(1,Math.ceil(Math.sqrt(R.length*1.4))))+'">'+R.map(function(h){return '<div class="rhouse"><div class="rh"><b>'+esc(teamName(h.team))+'</b><span class="rtbl">'+esc(h.table)+'</span></div><ol>'+h.members.map(function(m){return '<li>'+esc(m.name)+' <span class="muted">· '+esc(m.brgy)+'</span></li>'}).join('')+'</ol></div>'}).join('')+'</div>'}
+function rosterZoom(){if(rosterBig){rosterBig.remove();rosterBig=null;return}rosterBig=document.createElement('div');rosterBig.className='partbig rosterbig';rosterBig.innerHTML='<div class="rbody">'+rosterBigHTML()+'</div><p class="muted pclose">Click anywhere to close</p>';rosterBig.addEventListener('click',rosterZoom);document.body.appendChild(rosterBig)}
+document.addEventListener('keydown',function(e){if(rosterBig&&e.key==='Escape')rosterZoom()});
+function saveTables(){var t=Object.assign({},teamInfo.tables||{});rosterData().forEach(function(h){var v=draftTables[h.team];if(v!=null)t[h.team]=v});
+  api('/api/settings',{key:KEY,body:{tables:t}}).then(function(r){netOk(true);teamInfo.tables=r.tables||{};draftTables={};updRoster();flash('Tables saved. Phones show each house its table.')}).catch(function(){flash('Could not save tables. Check the connection.')})}
+function rosterCSV(){var L=[['House','Table','First name','Barangay']];rosterData().forEach(function(h){h.members.forEach(function(m){L.push(['House '+teamName(h.team),h.table,m.name,m.brgy])})});
+  resp.forEach(function(r){var d=r.data||{};if(!d.team)L.push(['No house yet','',d.name||'',d.barangay||''])});
+  var csv=L.map(function(r){return r.map(function(c){c=String(c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')}).join('\r\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));a.download='houses-and-tables.csv';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
+function updJoined(){var el=$('#jn');if(el)el.textContent=resp.length+' joined';updParticipation();updRoster();var rn=$('#regn');if(rn&&rn.textContent!==String(resp.length)){rn.textContent=resp.length;rn.classList.remove('bump');void rn.offsetWidth;rn.classList.add('bump')}updHouses()}
 /* Home: members in each house, and the presenter's house size setting. */
 function updHouses(){var el=$('#hchips');if(!el)return;var c={},bc={},waiting=0;resp.forEach(function(r){var t=r.data&&r.data.team,b=r.data&&r.data.barangay;if(t)c[t]=(c[t]||0)+1;else waiting++;if(b)bc[b]=(bc[b]||0)+1});
   var cap=teamInfo.cap,n=teamInfo.houses,N=resp.length,same=teamInfo.mode==='same',open=teamInfo.reg!=='closed';
@@ -773,9 +810,10 @@ function push(p,seg){var o={id:p.base+'@'+Date.now().toString(36),base:p.base,ty
 /* Houses open in this order: the 9 Great Houses, then Bolton, Frey, Tarly (12), then the rest. The id is what is stored. */
 var TEAMS=['Stark','Lannister','Targaryen','Baratheon','Greyjoy','Tyrell','Martell','Arryn','Tully','Bolton','Frey','Tarly','Mormont','Reed','Umber','Karstark','Clegane'].map(function(n,i){return {id:i+1,name:n}});
 function teamName(id){var t=TEAMS[Number(id)-1];return t?t.name:'?'}
+function tableOf(id){var t=(teamInfo.tables||{})[id];return t||('Table '+id)}
 function houseLabel(id){return Number(id)?'House '+teamName(id):'No house yet'}
-var teamInfo={cap:5,houses:0,reg:'open',mode:'mix',barangays:[],counts:{}},teamTimer=null,savedTeam=0; /* savedTeam: the house the server has confirmed for this phone */
-function loadTeams(){return api('/api/teams').then(function(r){if(r&&r.counts){var ch=JSON.stringify([r.barangays,r.reg])!==JSON.stringify([teamInfo.barangays,teamInfo.reg]);teamInfo=r;if(ch&&mode==='phone'&&(!mine||mine.editProfile))renderPhone();if(mode==='presenter')updHouses()}}).catch(function(){})}
+var teamInfo={cap:5,houses:0,reg:'open',mode:'mix',tables:{},barangays:[],counts:{}},teamTimer=null,savedTeam=0; /* savedTeam: the house the server has confirmed for this phone */
+function loadTeams(){return api('/api/teams').then(function(r){if(r&&r.counts){var ch=JSON.stringify([r.barangays,r.reg])!==JSON.stringify([teamInfo.barangays,teamInfo.reg]),tch=JSON.stringify(r.tables)!==JSON.stringify(teamInfo.tables);teamInfo=r;if(mode==='phone'&&((ch&&(!mine||mine.editProfile))||(tch&&mine&&mine.team)))renderPhone();if(mode==='presenter'){updHouses();updRoster()}}}).catch(function(){})}
 function watchTeams(){if(teamTimer)return;loadTeams();teamTimer=setInterval(function(){if(!document.hidden)loadTeams()},8000)} /* only to pick up the barangay list */
 function stopTeams(){clearInterval(teamTimer);teamTimer=null}
 function renderPhone(){
@@ -796,7 +834,7 @@ function renderPhoneInner(){
         :'<input type="text" id="jbrgy" maxlength="60" value="'+esc(bg)+'" placeholder="Barangay name">')
       +(mine&&mine.team?'<p class="muted">Your house stays the same: <b>House '+esc(teamName(mine.team))+'</b>.</p>':'<p class="muted">When registration closes, the facilitator assigns houses at random'+(teamInfo.mode==='same'?', with people from your barangay.':', mixing people from different barangays.')+'</p>')
       +'<div class="row"><button class="btn pri" data-act="joingo">'+(mine?'Save':'Register')+'</button></div></div></div>';app.innerHTML=h;watchTeams();return}
-  stopTeams();h+='<div class="card myhouse">'+(mine.team?'<span class="muted">Your house</span><b>House '+esc(teamName(mine.team))+'</b>':'<b class="wait">You are registered.</b><span class="muted">Your house will appear here when the facilitator closes registration.</span>')+'<span class="muted">'+esc(mine.name)+' · '+esc(mine.barangay||'')+' <button class="btn sm ghost" data-act="editprof">Change</button></span></div>';
+  stopTeams();h+='<div class="card myhouse">'+(mine.team?'<span class="muted">Your house</span><b>House '+esc(teamName(mine.team))+'</b><span class="tblgo">Go to '+esc(tableOf(mine.team))+'</span>':'<b class="wait">You are registered.</b><span class="muted">Your house will appear here when the facilitator closes registration.</span>')+'<span class="muted">'+esc(mine.name)+' · '+esc(mine.barangay||'')+' <button class="btn sm ghost" data-act="editprof">Change</button></span></div>';
   var lp=live&&live.prompt;
   if(!lp){h+='<div class="card"><b>You are in.</b><p class="muted">Wait for the next question. It will appear here by itself.</p></div></div>';app.innerHTML=h;return}
   var open=live.open!==false,mineA=mine.answers&&mine.answers[lp.id];
@@ -838,6 +876,7 @@ document.addEventListener('keydown',function(e){if(mode!=='presenter'||view.t!==
 app.addEventListener('input',function(e){var t=e.target;
   if(t.id==='din'){draft.text=t.value;if(live&&live.prompt)draft.pid=live.prompt.id;saveDraft()}
   else if(t.id==='jname')draft.name=t.value;
+  else if(t.classList&&t.classList.contains('tbin')){draftTables[+t.dataset.t]=t.value}
   else if(t.id==='brgyta'){t.dataset.dirty='1'}
   else if(t.id==='bseg'){bankSeg=t.value;drawBank()}
   else if(t.id==='at'){$('#aoWrap').style.display=t.value==='choice'?'block':'none'}});
@@ -868,6 +907,9 @@ function act(a,d){
   else if(a==='brgysave'){var list=($('#brgyta').value||'').split('\n').map(function(x){return x.trim()}).filter(Boolean);if(list.length>12)return flash('Up to 12 barangays.');saveSettings({barangays:list},list.length?'Saved '+list.length+' barangay'+(list.length===1?'':'s')+'. Phones update in a few seconds.':'Barangay list cleared.')}
   else if(a==='qrzoom')qrZoom();
   else if(a==='partbig')partZoom();
+  else if(a==='rosterbig')rosterZoom();
+  else if(a==='rostercsv')rosterCSV();
+  else if(a==='tblsave')saveTables();
   else if(a==='partcsv')partCSV();
   else if(a==='offline'){offline=true;isOwner=false;mode='presenter';document.body.classList.add('offline');renderPresenter()}
   else if(a==='capup')setCap(teamInfo.cap+1);
@@ -923,7 +965,7 @@ function connect(){clearTimeout(wsTimer);if(sock||!('WebSocket' in window))retur
   ws.onopen=function(){wsTry=0;net.ws=true;netOk(true);stopFallback();refreshMe();clearInterval(pingTimer);
     pingTimer=setInterval(function(){if(ws.readyState!==1)return;try{ws.send('ping')}catch(e){}clearTimeout(pongWait);pongWait=setTimeout(function(){try{ws.close()}catch(e){}},10000)},25000)};
   ws.onmessage=function(ev){clearTimeout(pongWait);if(ev.data==='pong')return;var m;try{m=JSON.parse(ev.data)}catch(e){return}
-    if(m.me){refreshMe();return}
+    if(m.me){refreshMe();loadTeams();return}
     if('epoch' in m)onEpoch(m.epoch);if('live' in m)onLive(m.live);if('rev' in m)onRev(m.rev)};
   ws.onclose=function(){if(sock!==ws)return;sock=null;net.ws=false;clearInterval(pingTimer);clearTimeout(pongWait);
     startFallback();var wait=Math.min(15000,1000*Math.pow(2,wsTry++))+Math.random()*1000;wsTimer=setTimeout(connect,wait)};
@@ -956,7 +998,7 @@ async function boot(){
     if(local&&local.name&&(!m||Object.keys(local.answers||{}).some(function(k){return !(m.answers||{})[k]}))){mine=local;unsent=true}
     else if(!m)mine=null}
   catch(e){if(local&&local.name){mine=local;unsent=true}netOk(false)}
-  renderPhone();startNet()}
+  renderPhone();startNet();loadTeams()}
 app.addEventListener('click',async function(e){var b=e.target.closest('[data-act=unlock]');if(!b)return;var k=($('#pk').value||'').trim();if(await startHost(k)){renderPresenter();startNet()}else unlockForm(navigator.onLine===false?'No internet. Use Present offline below.':'That passcode did not work, or there is no connection. If the internet is down, use Present offline below.')});
 boot();
 })();

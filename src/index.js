@@ -35,7 +35,8 @@ export class Session {
   async reg() { return (await this.s.get("reg")) ?? "open"; }
   async mode() { return (await this.s.get("mode")) ?? "mix"; } // "mix" barangays in each house, or "same" barangay per house
   async brgys() { return (await this.s.get("brgys")) ?? DEFAULT_BRGYS; }
-  async settings() { return { cap: await this.cap(), houses: await this.houses(), barangays: await this.brgys(), reg: await this.reg(), mode: await this.mode() }; }
+  async settings() { return { cap: await this.cap(), houses: await this.houses(), barangays: await this.brgys(), reg: await this.reg(), mode: await this.mode(), tables: await this.tables() }; }
+  async tables() { return (await this.s.get("tables")) ?? {}; } // physical table per house, set by the presenter
 
   // Late registrant (houses already assigned): a house in use with room, preferring the fewest people from the
   // same barangay, then the emptiest, then random. If every house is full, open the next house.
@@ -165,6 +166,10 @@ export class Session {
       if (b.reg === "closed") assigned = await this.placeAndNotify(); // houses are assigned when registration closes
       if (b.mode != null) await this.s.put("mode", b.mode);
       if (b.barangays != null) await this.s.put("brgys", b.barangays);
+      if (b.tables != null) {
+        await this.s.put("tables", b.tables);
+        for (const ws of this.state.getWebSockets("phone")) { try { ws.send('{"me":1}'); } catch (e) {} } // phones refresh their table
+      }
       return J({ ok: true, ...(await this.settings()), assigned });
     }
     if (u.pathname === "/assign") {
@@ -193,7 +198,7 @@ export class Session {
     if (u.pathname === "/clear") {
       const rev = (await this.rev()) + 1, epoch = (await this.epoch()) + 1, set = await this.settings();
       await this.s.deleteAll();
-      await this.s.put({ rev, epoch, cap: set.cap, brgys: set.barangays, mode: set.mode }); // cap, barangays, grouping survive; houses and registration reset
+      await this.s.put({ rev, epoch, cap: set.cap, brgys: set.barangays, mode: set.mode, tables: set.tables }); // cap, barangays, grouping, tables survive; houses and registration reset
       await this.broadcast();
       return J({ ok: true });
     }
@@ -277,6 +282,16 @@ export default {
         if (b.cap != null) { const v = Number(b.cap); if (!Number.isInteger(v) || v < 1 || v > 40) return J({ error: "bad request" }, 400); out.cap = v; }
         if (b.reg != null) { if (b.reg !== "open" && b.reg !== "closed") return J({ error: "bad request" }, 400); out.reg = b.reg; }
         if (b.mode != null) { if (b.mode !== "mix" && b.mode !== "same") return J({ error: "bad request" }, 400); out.mode = b.mode; }
+        if (b.tables != null) {
+          if (typeof b.tables !== "object" || Array.isArray(b.tables)) return J({ error: "bad request" }, 400);
+          const t = {};
+          for (const [k, v] of Object.entries(b.tables)) {
+            const n = Number(k);
+            if (!Number.isInteger(n) || n < 1 || n > TEAM_COUNT || typeof v !== "string") return J({ error: "bad request" }, 400);
+            if (v.trim()) t[n] = v.trim().slice(0, 24);
+          }
+          out.tables = t;
+        }
         if (b.barangays != null) {
           if (!Array.isArray(b.barangays) || b.barangays.length > MAX_BRGY) return J({ error: "bad request" }, 400);
           const list = [...new Set(b.barangays.map((x) => String(x).trim().slice(0, 60)).filter(Boolean))];

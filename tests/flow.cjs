@@ -191,6 +191,19 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     const dl = host.waitForEvent('download'); await host.click('[data-act=partcsv]'); const csvPath = await (await dl).path();
     const csv = fs.readFileSync(csvPath, 'utf8'); assert.match(csv, /House Stark,1,1,\d+,\d+,\d+/);
     ok('participation by house: table, full-screen view, CSV download');
+    // Houses and tables roster: members per house, editable table, phones told where to sit
+    await host.locator('#rostercard .rhouse', { hasText: 'House Stark' }).waitFor({ timeout: 8000 });
+    assert.match(await host.locator('#rostercard .rhouse', { hasText: 'House Stark' }).textContent(), /Ana/);
+    assert.equal(await host.inputValue('#rostercard .tbin[data-t="1"]'), 'Table 1');
+    await phone.locator('.myhouse .tblgo', { hasText: 'Go to Table 1' }).waitFor({ timeout: 8000 });
+    await host.fill('#rostercard .tbin[data-t="1"]', 'Front table');
+    await host.click('[data-act=tblsave]');
+    await phone.locator('.myhouse .tblgo', { hasText: 'Go to Front table' }).waitFor({ timeout: 8000 });
+    await host.click('[data-act=rosterbig]'); await host.locator('.rosterbig .rtbl', { hasText: 'Front table' }).waitFor();
+    await host.click('.rosterbig'); await host.locator('.rosterbig').waitFor({ state: 'detached' });
+    const dl2 = host.waitForEvent('download'); await host.click('[data-act=rostercsv]');
+    const roster = fs.readFileSync(await (await dl2).path(), 'utf8'); assert.match(roster, /House Stark,Front table,Ana,Brgy 3/);
+    ok('roster: members per house, table saved and shown on the phone, full-screen view, CSV');
     await host.click('[data-act=clear]');
     await host.click('[data-act=clear]');
     await host.locator('#jn', { hasText: '0 joined' }).waitFor({ timeout: 8000 });
@@ -255,7 +268,7 @@ const ok = (m) => console.log(`  ✓ ${++step}. ${m}`);
     ok('same-barangay houses: 10 → 2 houses of 5, 4 → 1 house; latecomers stay with their barangay');
 
     // Restore and clean up
-    r = await post('/api/settings', { cap: 5, mode: 'mix' }, true); assert.equal(r.status, 200);
+    r = await post('/api/settings', { cap: 5, mode: 'mix', tables: {} }, true); assert.equal(r.status, 200);
     r = await post('/api/clear', {}, true); assert.equal(r.status, 200);
 
     assert.deepEqual(errors, [], 'page errors: ' + errors.join('; ')); ok('no page errors');
